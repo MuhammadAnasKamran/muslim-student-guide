@@ -43,7 +43,9 @@ export function parseContent(source) {
   let prose = null;
   let fence = null;
 
-  const problem = (line, message) => problems.push({ line, message });
+  const problem = (line, message) => {
+    problems.push({ line, message });
+  };
   const container = () => subsection ?? section;
 
   function uniqueId(text) {

@@ -65,6 +65,15 @@ test('unknown keys, repeated keys, bad links and placeholders fail', () => {
   assert.deepEqual(errors.map((e) => e.line), [7, 8, 9, 10, 12, 13]);
 });
 
+test('a malformed field is reported once, with its line, and never kept as a field', () => {
+  const doc = parseContent(`${HEADER}# 1. FOOD\n### Place\n- where: Z\n- status: certified\n- Halal snacks\n- note: No colon above\n`);
+  assert.deepEqual(doc.sections[0].blocks[0].fields.map((f) => f.key), ['where', 'status', 'note']);
+  const { errors } = validate(doc);
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0].line, 8);
+  assert.match(errors[0].message, /no colon/);
+});
+
 test('an entry with no fields fails', () => {
   const { errors } = check('# 1. FOOD\n### Empty\n- TODO: everything\n');
   assert.equal(errors.length, 1);
