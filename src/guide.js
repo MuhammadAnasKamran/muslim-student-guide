@@ -1,46 +1,48 @@
 // Pure logic shared by the page (app.js) and the tests. No DOM access here.
+// How each key appears on screen is described in CLAUDE.md, "How entries render".
 
 // Words for each status. Meanings mirror the table in CLAUDE.md and content.md.
 // Each status keeps its own word: never collapse certified-section into certified.
 export const STATUS_LABELS = {
-  certified: { label: 'Certified', meaning: 'Holds halal certification.' },
+  certified: { label: 'Halal certified', meaning: 'Holds halal certification.' },
   'certified-section': { label: 'Certified section only', meaning: 'Only part of the shop or menu is certified.' },
-  'check-packaging': { label: 'Check packaging', meaning: 'Some products are certified. Look for the halal logo yourself.' },
-  unverified: { label: 'Unverified', meaning: 'Community-known. MUSA has not confirmed anything.' },
+  'check-packaging': { label: 'Check packaging', meaning: 'Some products are certified. Look for the halal logo.' },
+  unverified: { label: 'Unverified', meaning: 'Community-known. Not checked by MUSA.' },
 };
 
 // Shown on food listings that have no status in content.md (see FOOD_KEYS in
 // scripts/schema.mjs). It describes the data, not the place.
-export const STATUS_NOT_RECORDED = {
-  label: 'Halal status not recorded',
-  meaning: 'MUSA has not recorded a halal status for this place.',
-};
+export const STATUS_NOT_RECORDED = { label: 'Status not recorded', meaning: 'MUSA has no halal status on record.' };
 
-// Label for every key shown as a row. Keys missing here fail loudly when rendered.
+// The grey line under a row's name, visible without tapping, in this order.
+export const SUMMARY_KEYS = ['tag', 'location', 'where', 'walk', 'district', 'what', 'sells', 'price'];
+
+// Highlighted tags, visible without tapping.
+export const CHIP_KEYS = ['jummah', 'perk', 'delivery'];
+
+// Rendered in their own way: the status badge and the link button.
+export const SPECIAL_KEYS = ['status', 'link', 'link-label'];
+
+// Everything else is a labelled fact inside the opened row. A key with no home
+// in any of these lists fails loudly when rendered.
 export const FIELD_LABELS = {
-  location: 'Location',
   access: 'Access',
-  arrangement: 'Arrangement',
+  arrangement: 'Layout',
   wudu: 'Wudu',
-  jummah: 'Jummah',
+  'jummah-note': 'Jummah',
   floors: 'Floors',
   feature: 'Feature',
-  where: 'Where',
   address: 'Address',
-  district: 'District',
-  walk: 'Walk',
   menu: 'Menu',
-  price: 'Price',
-  sells: 'Sells',
-  what: 'What',
-  delivery: 'Delivery',
-  perk: 'Perk',
   note: 'Note',
   notes: 'Notes',
 };
 
-// Keys rendered in their own way rather than as a label/value row.
-export const SPECIAL_KEYS = ['tag', 'status', 'link', 'link-label', 'jummah-note'];
+// An entry made only of these renders as an always-open card (tips, apps, lists).
+const INFO_KEYS = ['note', 'link', 'link-label'];
+
+// Highlights stay on every row, so they are never shown once above a group.
+const NEVER_SHARED = new Set([...SPECIAL_KEYS, 'jummah', 'jummah-note']);
 
 export function fieldMap(entry) {
   return Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
@@ -53,6 +55,53 @@ export function statusOf(entry) {
     return { key: status, ...STATUS_LABELS[status] };
   }
   return entry.statusMissing ? { key: 'none', ...STATUS_NOT_RECORDED } : null;
+}
+
+export function isInfoCard(entry) {
+  return entry.fields.length > 0 && entry.fields.every((f) => INFO_KEYS.includes(f.key));
+}
+
+// Facts that every row in a group has with the same value, so the screen can
+// say them once above the rows instead of on each one.
+export function sharedFacts(entries) {
+  const rows = entries.filter((entry) => !isInfoCard(entry));
+  if (rows.length < 2) return [];
+  const [first, ...rest] = rows;
+  return first.fields
+    .filter((f) => !NEVER_SHARED.has(f.key))
+    .filter((f) => rest.every((entry) => entry.fields.some((g) => g.key === f.key && g.value === f.value)))
+    .map(({ key, value }) => ({ key, value }));
+}
+
+// Splits an entry into what a closed row shows and what opening it reveals.
+export function rowParts(entry, shared = []) {
+  const hidden = new Set(shared.map((f) => f.key));
+  const fields = entry.fields.filter((f) => !hidden.has(f.key));
+  for (const { key } of fields) {
+    const placed = SUMMARY_KEYS.includes(key) || CHIP_KEYS.includes(key) || SPECIAL_KEYS.includes(key) || FIELD_LABELS[key];
+    if (!placed) throw new Error(`No place to show "${key}" on "${entry.name}" (content.md line ${entry.line})`);
+  }
+
+  const summary = SUMMARY_KEYS.flatMap((key) => fields.filter((f) => f.key === key).map((f) => f.value)).join(' · ');
+  const chips = fields
+    .filter((f) => CHIP_KEYS.includes(f.key))
+    .map(({ key, value }) =>
+      key === 'jummah' ? { key, text: value === 'yes' ? 'Jummah' : 'No Jummah', muted: value !== 'yes' } : { key, text: value, muted: false },
+    );
+  const facts = fields.filter((f) => FIELD_LABELS[f.key]).map((f) => ({ key: f.key, label: FIELD_LABELS[f.key], value: f.value }));
+  const map = fieldMap(entry);
+  const link = map.link ? { href: map.link, ...linkText(map.link, map['link-label']) } : null;
+  const copyAddress = !link && map.address && !hidden.has('address') ? map.address : null;
+
+  return {
+    status: statusOf(entry),
+    chips,
+    summary,
+    facts,
+    link,
+    copyAddress,
+    expandable: facts.length > 0 || Boolean(link) || Boolean(copyAddress),
+  };
 }
 
 // The visible text of a link describes where it goes, judged from the URL
@@ -68,6 +117,13 @@ export function linkText(href, label) {
   if (host === 'play.google.com') return { text: 'Open in Google Play', host };
   if (pathname.toLowerCase().endsWith('.pdf')) return { text: 'Open the PDF', host };
   return { text: 'Visit the website', host };
+}
+
+// One home-menu button per published `#` section, in content.md order.
+export function menuItems(doc) {
+  return doc.sections
+    .filter((s) => s.published)
+    .map((s) => ({ id: s.id, title: s.title, detail: s.subsections.map((sub) => sub.title).join(' · ') }));
 }
 
 // Every published entry with the section and subsection it sits in.
@@ -87,69 +143,27 @@ export function entryContexts(doc) {
   return out;
 }
 
-// Filter chips. Each rule reads only what content.md already says: headings,
-// names, and a few fields. `rule` is the plain-English version, printed by
-// the checks so a committee member can see why a listing appears under a chip.
-const mentions = (pattern, ...texts) => texts.some((text) => pattern.test(text ?? ''));
-
-function isNearHalls({ entry, section, subsection }) {
-  const f = fieldMap(entry);
-  return mentions(/\bhalls?\b/i, section.title, subsection?.title, entry.name, f.where, f.location, f.walk);
+// Page addresses: #/ is home, #/<screen> a screen, #/<screen>/<entry> an opened row.
+export function parseRoute(hash) {
+  const path = (hash ?? '').replace(/^#/, '');
+  if (path === '' || path === '/') return { screen: null, entry: null };
+  if (!path.startsWith('/')) return null;
+  const [screen = null, entry = null] = path.slice(1).split('/').filter(Boolean);
+  return { screen, entry };
 }
 
-export const FILTERS = [
-  {
-    id: 'certified',
-    label: 'Fully certified',
-    rule: 'status is exactly "certified". certified-section, check-packaging and unverified are left out.',
-    test: ({ entry }) => fieldMap(entry).status === 'certified',
-  },
-  {
-    id: 'near-campus',
-    label: 'Near campus',
-    rule: 'section heading says "on campus", subsection says "Closest to PolyU", or the name says "near campus" — minus anything that matches Near halls.',
-    test: (ctx) =>
-      !isNearHalls(ctx) &&
-      (mentions(/\bon campus\b/i, ctx.section.title) ||
-        mentions(/\bclosest to polyu\b/i, ctx.subsection?.title) ||
-        mentions(/\bnear campus\b/i, ctx.entry.name)),
-  },
-  {
-    id: 'near-halls',
-    label: 'Near halls',
-    rule: 'section heading, subsection heading, name, "where", "location" or "walk" mentions "hall" or "halls".',
-    test: isNearHalls,
-  },
-  {
-    id: 'delivery',
-    label: 'Delivery',
-    rule: 'section or subsection heading says "delivery", or the entry has a "delivery" field.',
-    test: ({ entry, section, subsection }) =>
-      mentions(/\bdelivery\b/i, section.title, subsection?.title) || entry.fields.some((f) => f.key === 'delivery'),
-  },
-  {
-    id: 'prayer',
-    label: 'Prayer',
-    rule: 'section heading, subsection heading or name says "prayer", and the section heading does not say "mosque".',
-    test: ({ entry, section, subsection }) =>
-      mentions(/\bprayer\b/i, section.title, subsection?.title, entry.name) && !mentions(/\bmosques?\b/i, section.title),
-  },
-  {
-    id: 'mosques',
-    label: 'Mosques',
-    rule: 'section heading says "mosque" or "mosques".',
-    test: ({ section }) => mentions(/\bmosques?\b/i, section.title),
-  },
-];
+export function routeFor(screen, entry) {
+  if (!screen) return '#/';
+  return entry ? `#/${screen}/${entry}` : `#/${screen}`;
+}
 
-// Search matches what a student can read on the card: section and subsection
-// headings, the name, field values and the status word. URLs and link text
-// generated from URLs are left out, so "google" doesn't match every map link.
+// Search matches what a student can read: headings, the name, field values and
+// the status word. URLs and link text generated from URLs are left out.
 export function searchText({ entry, section, subsection }) {
   const parts = [section.title, subsection?.title, entry.name, statusOf(entry)?.label];
   for (const { key, value } of entry.fields) {
     if (key === 'link' || key === 'status') continue;
-    // The card reads "Jummah: Yes", so a search for "jummah" should find it.
+    // The row reads "Jummah", so a search for "jummah" should find it.
     if (key === 'jummah') parts.push(value === 'yes' ? 'Jummah' : '');
     else parts.push(value);
   }

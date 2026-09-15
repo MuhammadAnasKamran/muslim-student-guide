@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import { ENTRY_KEYS, STATUSES } from '../../scripts/schema.mjs';
-import { FIELD_LABELS, SPECIAL_KEYS, STATUS_LABELS } from '../../src/guide.js';
+import { CHIP_KEYS, FIELD_LABELS, SPECIAL_KEYS, STATUS_LABELS, SUMMARY_KEYS } from '../../src/guide.js';
 
 const root = new URL('../../', import.meta.url);
 const read = (file) => readFileSync(new URL(file, root), 'utf8');
@@ -36,9 +36,10 @@ test('rule 7: no browser storage or caches', () => {
   }
 });
 
-test('every allowed key can be rendered, so nothing vanishes silently', () => {
+test('every allowed key has a place on screen, so nothing vanishes silently', () => {
   for (const key of ENTRY_KEYS) {
-    assert.ok(SPECIAL_KEYS.includes(key) || FIELD_LABELS[key], `key "${key}" has no label in src/guide.js`);
+    const placed = SUMMARY_KEYS.includes(key) || CHIP_KEYS.includes(key) || SPECIAL_KEYS.includes(key) || FIELD_LABELS[key];
+    assert.ok(placed, `key "${key}" has no place in src/guide.js`);
   }
 });
 

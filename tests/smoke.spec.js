@@ -2,32 +2,34 @@
 
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { STATUS_LABELS, STATUS_NOT_RECORDED } from '../src/guide.js';
 
-const STATUS_WORDS = {
-  certified: 'Certified',
-  'certified-section': 'Certified section only',
-  'check-packaging': 'Check packaging',
-  unverified: 'Unverified',
-};
-
-function published() {
+function load() {
   const doc = JSON.parse(readFileSync(new URL('../content.json', import.meta.url), 'utf8'));
-  const entries = doc.sections
+  const screens = doc.sections
     .filter((s) => s.published)
-    .flatMap((s) => [...s.blocks, ...s.subsections.flatMap((sub) => sub.blocks)])
-    .filter((b) => b.type === 'entry');
+    .map((section) => {
+      const blocks = [...section.blocks, ...section.subsections.flatMap((sub) => sub.blocks)];
+      return {
+        section,
+        entries: blocks.filter((b) => b.type === 'entry'),
+        quotes: blocks.filter((b) => b.kind === 'blockquote'),
+      };
+    });
+  const entries = screens.flatMap((s) => s.entries);
   const links = new Set(entries.flatMap((e) => e.fields.filter((f) => f.key === 'link').map((f) => f.value)));
-  return { doc, entries, links };
+  return { doc, screens, entries, links };
 }
 
-const cards = (page) => page.locator('[data-entry-id]:visible');
+const screenView = (page, id) => page.locator(`[data-screen="${id}"]`);
+const clean = (text) => text.replace('Halal status: ', '').replace(/\s+/g, ' ').trim();
 
-async function open(page) {
+async function openHome(page) {
   await page.goto('/');
-  await expect(page.locator('#result-count')).toHaveText(/^Showing all \d+ listings$/);
+  await expect(page.locator('.menu-link').first()).toBeVisible();
 }
 
-test('page loads with no console errors', async ({ page }) => {
+test('home loads with a menu in content.md order and no console errors', async ({ page }) => {
   const errors = [];
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text());
@@ -38,125 +40,181 @@ test('page loads with no console errors', async ({ page }) => {
     if (response.status() >= 400) errors.push(`HTTP ${response.status()}: ${response.url()}`);
   });
 
-  await open(page);
-  await expect(page).toHaveTitle(published().doc.meta.title);
+  const { doc, screens } = load();
+  await openHome(page);
+  await expect(page).toHaveTitle(doc.meta.title);
+  await expect(page.locator('.menu-link .menu-title')).toHaveText(screens.map((s) => s.section.title));
+  expect(screens[0].section.title, 'prayer comes before food').toMatch(/prayer/i);
   expect(errors).toEqual([]);
 });
 
-test('every entry in content.json is in the DOM with its name, fields and status', async ({ page }) => {
-  const { entries } = published();
-  await open(page);
+test('every entry in content.json is on its screen with its name, facts and link', async ({ page }) => {
+  const { screens, entries } = load();
+  await openHome(page);
   await expect(page.locator('[data-entry-id]')).toHaveCount(entries.length);
-  await expect(cards(page)).toHaveCount(entries.length);
-
-  const rendered = await page.$$eval('[data-entry-id]', (els) =>
-    Object.fromEntries(
-      els.map((el) => [
-        el.dataset.entryId,
-        {
-          name: el.querySelector('h3').textContent,
-          text: el.textContent.replace(/\s+/g, ' '),
-          status: el.querySelector('.status')?.textContent.replace('Halal status: ', '') ?? null,
-        },
-      ]),
-    ),
-  );
 
   const problems = [];
-  for (const entry of entries) {
-    const card = rendered[entry.id];
-    if (!card) {
-      problems.push(`missing: ${entry.name}`);
-      continue;
+  for (const { section, entries: list } of screens) {
+    const view = screenView(page, section.id);
+    const text = clean(await view.textContent());
+    const hrefs = await view.locator('a[href]').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
+    for (const entry of list) {
+      const card = view.locator(`[data-entry-id="${entry.id}"]`);
+      if ((await card.count()) !== 1) {
+        problems.push(`${entry.name} is not on ${section.title}`);
+        continue;
+      }
+      const name = await card.locator('h3').textContent();
+      if (name !== entry.name) problems.push(`name "${name}" should be "${entry.name}"`);
+      for (const { key, value } of entry.fields) {
+        if (key === 'status' || key === 'jummah') continue;
+        if (key === 'link') {
+          if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
+        } else if (!text.includes(clean(value))) {
+          problems.push(`${entry.name}: ${key} "${value}" not on screen`);
+        }
+      }
     }
-    if (card.name !== entry.name) problems.push(`name "${card.name}" should be "${entry.name}"`);
-    for (const { key, value } of entry.fields) {
-      if (['link', 'status', 'jummah'].includes(key)) continue;
-      if (!card.text.includes(value.replace(/\s+/g, ' '))) problems.push(`${entry.name}: ${key} not shown`);
-    }
-    const status = entry.fields.find((f) => f.key === 'status')?.value;
-    const expected = status ? STATUS_WORDS[status] : entry.statusMissing ? 'Halal status not recorded' : null;
-    if (card.status !== expected) problems.push(`${entry.name}: status shows "${card.status}", expected "${expected}"`);
   }
   expect(problems).toEqual([]);
 });
 
-test('search narrows the list and clearing restores it', async ({ page }) => {
-  const { entries } = published();
-  const target = entries[0].name;
-  await open(page);
+test('halal status, Jummah and warnings are visible without tapping anything', async ({ page }) => {
+  const { screens } = load();
+  const problems = [];
+  for (const { section, entries, quotes } of screens) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${section.id}`);
+    const view = screenView(page, section.id);
+    await expect(view).toBeVisible();
 
-  const search = page.getByLabel('Search the guide');
-  await expect(search).toHaveAttribute('type', 'search');
-  await search.fill(target.toUpperCase());
-  await expect(page.locator(`[data-entry-id="${entries[0].id}"]`)).toBeVisible();
-  await expect.poll(() => cards(page).count()).toBeLessThan(entries.length);
-  const narrowed = await cards(page).count();
-  expect(narrowed).toBeGreaterThan(0);
-  await expect(page.locator('#result-count')).toHaveText(`Showing ${narrowed} of ${entries.length} listings`);
-
-  await search.fill('qqqzzzxxx');
-  await expect(cards(page)).toHaveCount(0);
-  await expect(page.locator('#empty-state')).toBeVisible();
-  await expect(page.locator('section.section:visible')).toHaveCount(0);
-
-  await page.getByRole('button', { name: 'Clear search', exact: true }).click();
-  await expect(search).toHaveValue('');
-  await expect(search).toBeFocused();
-  await expect(cards(page)).toHaveCount(entries.length);
-  await expect(page.locator('#empty-state')).toBeHidden();
+    for (const entry of entries) {
+      const fields = Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
+      const card = view.locator(`[data-entry-id="${entry.id}"]`);
+      const expected = fields.status ? STATUS_LABELS[fields.status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
+      if (expected) {
+        const badge = card.locator('.row-head .status');
+        if (!(await badge.isVisible())) problems.push(`${entry.name}: status hidden`);
+        else if (clean(await badge.textContent()) !== expected) problems.push(`${entry.name}: status should read "${expected}"`);
+      }
+      if (fields.jummah) {
+        const chip = card.locator('.row-head .chip', { hasText: fields.jummah === 'yes' ? /^Jummah$/ : /^No Jummah$/ });
+        if (!(await chip.isVisible())) problems.push(`${entry.name}: Jummah chip hidden`);
+      }
+    }
+    for (const quote of quotes) {
+      const words = quote.runs.map((r) => r.text).join('').slice(0, 30);
+      if (!(await view.locator('.alert', { hasText: words }).isVisible())) problems.push(`${section.title}: warning "${words}" hidden`);
+    }
+  }
+  expect(problems).toEqual([]);
 });
 
-test('each filter chip changes the count', async ({ page }) => {
-  const { entries } = published();
-  await open(page);
-  const chips = page.locator('#filters .chip');
-  await expect(chips).toHaveCount(7);
-  const all = page.locator('.chip[data-filter="all"]');
-  await expect(all).toHaveAttribute('aria-pressed', 'true');
+test('tapping a row opens it, and Back closes it, then returns home', async ({ page }) => {
+  const { screens } = load();
+  const { id: screenId, title } = screens[0].section;
+  await openHome(page);
 
-  for (const chip of await chips.all()) {
-    if ((await chip.getAttribute('data-filter')) === 'all') continue;
-    const label = await chip.textContent();
-    await all.click();
-    await chip.click();
-    await expect(chip, label).toHaveAttribute('aria-pressed', 'true');
-    await expect(all).toHaveAttribute('aria-pressed', 'false');
-    const count = await cards(page).count();
-    expect(count, `${label} should show some listings`).toBeGreaterThan(0);
-    expect(count, `${label} should hide some listings`).toBeLessThan(entries.length);
-    await expect(page.locator('#result-count')).toHaveText(`Showing ${count} of ${entries.length} listings`);
-  }
+  await page.locator('.menu-link').first().click();
+  await expect(page).toHaveURL(new RegExp(`#/${screenId}$`));
+  await expect(page.locator('#screen-title')).toHaveText(title);
 
-  await all.click();
-  await expect(cards(page)).toHaveCount(entries.length);
-  await expect(page.locator('.chip[aria-pressed="true"]')).toHaveCount(1);
+  const row = screenView(page, screenId).locator('details.row').first();
+  const entryId = await row.getAttribute('data-entry-id');
+  await row.locator('summary').click();
+  await expect(row).toHaveAttribute('open', '');
+  await expect(page).toHaveURL(new RegExp(`#/${screenId}/${entryId}$`));
+
+  await page.goBack();
+  await expect(row).not.toHaveAttribute('open');
+  await expect(page).toHaveURL(new RegExp(`#/${screenId}$`));
+  await page.goBack();
+  await expect(page.locator('.menu')).toBeVisible();
+
+  await page.goto('about:blank');
+  await page.goto(`/#/${screenId}/${entryId}`);
+  await expect(screenView(page, screenId).locator(`details[data-entry-id="${entryId}"]`)).toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.locator('.menu')).toBeVisible();
+});
+
+test('search narrows results and clearing restores the menu', async ({ page }) => {
+  const { entries } = load();
+  await openHome(page);
+  const search = page.getByLabel('Search the guide');
+  const results = page.locator('.results');
+
+  await search.fill(entries[0].name.toUpperCase());
+  await expect(results.locator(`[data-entry-id="${entries[0].id}"]`)).toBeVisible();
+  await expect(page.locator('.menu')).toBeHidden();
+  const count = await results.locator('[data-entry-id]').count();
+  expect(count).toBeGreaterThan(0);
+  expect(count).toBeLessThan(entries.length);
+  await expect(page.locator('#result-count')).toHaveText(`${count} ${count === 1 ? 'result' : 'results'}`);
+
+  await search.fill('qqqzzzxxx');
+  await expect(page.locator('.empty-state')).toBeVisible();
+  await expect(page.locator('#result-count')).toHaveText('No results');
+
+  await page.locator('.clear-button').click();
+  await expect(search).toHaveValue('');
+  await expect(search).toBeFocused();
+  await expect(page.locator('.menu')).toBeVisible();
 });
 
 test('every link on the page comes from content.json, and every content link is on the page', async ({ page }) => {
-  const { links } = published();
-  await open(page);
+  const { links } = load();
+  await openHome(page);
   const anchors = await page.$$eval('a[href]', (els) => els.map((a) => ({ href: a.getAttribute('href'), rel: a.rel })));
-  // The skip link points inside the page; every other href must be a content.md link.
+  // Menu links are in-app page addresses (#/...); every other href must be a content.md link.
   const external = anchors.filter((a) => !a.href.startsWith('#'));
   expect(external.filter((a) => !links.has(a.href)).map((a) => a.href)).toEqual([]);
   expect([...links].filter((href) => !external.some((a) => a.href === href))).toEqual([]);
   expect(external.filter((a) => a.rel !== 'noopener').map((a) => a.href)).toEqual([]);
 });
 
-test('no tap target is smaller than 44px', async ({ page }) => {
-  await open(page);
-  await page.getByLabel('Search the guide').fill('a');
-  await expect(page.getByRole('button', { name: 'Clear search', exact: true })).toBeVisible();
+test('no tap target is smaller than 44px on any screen', async ({ page }) => {
+  const { screens } = load();
+  const measure = () =>
+    page.$$eval('a[href], button, input, summary', (els) =>
+      els
+        .filter((el) => el.checkVisibility())
+        .map((el) => {
+          const box = el.getBoundingClientRect();
+          return { what: el.id || el.textContent.trim().slice(0, 40), width: Math.round(box.width), height: Math.round(box.height) };
+        })
+        .filter((box) => box.width < 44 || box.height < 44),
+    );
 
-  const small = await page.$$eval('a[href], button, input, select, textarea, [role="button"]', (els) =>
-    els
-      .filter((el) => el.checkVisibility())
-      .map((el) => {
-        const box = el.getBoundingClientRect();
-        return { what: el.id || el.textContent.trim().slice(0, 40), width: Math.round(box.width), height: Math.round(box.height) };
-      })
-      .filter((box) => box.width < 44 || box.height < 44),
-  );
+  await openHome(page);
+  await page.getByLabel('Search the guide').fill('a');
+  await expect(page.locator('.clear-button')).toBeVisible();
+  const small = await measure();
+
+  for (const { section } of screens) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${section.id}`);
+    await screenView(page, section.id).locator('details').evaluateAll((all) => all.forEach((d) => d.setAttribute('open', '')));
+    small.push(...(await measure()).map((box) => ({ ...box, screen: section.title })));
+  }
   expect(small).toEqual([]);
+});
+
+test.describe('copy address', () => {
+  test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+
+  test('copies the exact address from content.json', async ({ page }) => {
+    const { screens } = load();
+    const withCopy = screens
+      .flatMap(({ section, entries }) => entries.map((entry) => ({ section, entry })))
+      .find(({ entry }) => entry.fields.some((f) => f.key === 'address') && !entry.fields.some((f) => f.key === 'link'));
+    test.skip(!withCopy, 'no entry has an address without a link');
+
+    const address = withCopy.entry.fields.find((f) => f.key === 'address').value;
+    await page.goto(`/#/${withCopy.section.id}/${withCopy.entry.id}`);
+    const button = screenView(page, withCopy.section.id).locator(`[data-entry-id="${withCopy.entry.id}"] .copy-button`);
+    await button.click();
+    await expect(button).toHaveText('Address copied');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(address);
+  });
 });

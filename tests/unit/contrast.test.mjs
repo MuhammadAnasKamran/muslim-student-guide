@@ -23,7 +23,7 @@ function luminance(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-export function contrast(a, b) {
+function contrast(a, b) {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 }
@@ -33,22 +33,23 @@ const NON_TEXT = 3;
 const PAIRS = [
   ['ink', 'bg', TEXT],
   ['ink', 'surface', TEXT],
-  ['ink', 'callout', TEXT],
+  ['ink', 'accent-soft', TEXT],
   ['muted', 'bg', TEXT],
   ['muted', 'surface', TEXT],
   ['accent', 'bg', TEXT],
   ['accent', 'surface', TEXT],
   ['accent-ink', 'accent', TEXT],
   ['header-ink', 'header-bg', TEXT],
-  ['header-muted', 'header-bg', TEXT],
+  ['warn-ink', 'warn-bg', TEXT],
   ['certified-ink', 'certified-bg', TEXT],
   ['amber-ink', 'amber-bg', TEXT],
   ['grey-ink', 'grey-bg', TEXT],
   ['control-border', 'surface', NON_TEXT],
   ['control-border', 'bg', NON_TEXT],
+  ['accent', 'accent-soft', NON_TEXT],
   ['focus', 'bg', NON_TEXT],
   ['focus', 'surface', NON_TEXT],
-  ['focus', 'accent-ink', NON_TEXT],
+  ['header-ink', 'header-bg', NON_TEXT],
 ];
 
 test('brand tokens match CLAUDE.md in light mode', () => {
@@ -71,7 +72,7 @@ for (const [mode, palette] of [['light', light], ['dark', dark]]) {
 }
 
 test('dark mode redefines its colours rather than reusing light ones', () => {
-  for (const name of ['ink', 'bg', 'surface', 'accent', 'certified-bg', 'amber-bg', 'grey-bg']) {
+  for (const name of ['ink', 'bg', 'surface', 'accent', 'accent-soft', 'warn-bg', 'certified-bg', 'amber-bg', 'grey-bg']) {
     assert.notEqual(dark[name], light[name], `--${name}`);
   }
 });

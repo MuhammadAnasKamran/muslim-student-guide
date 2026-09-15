@@ -94,6 +94,7 @@ assert success — demonstrate it.
 - Paragraphs and `>` blockquotes between entries are prose belonging to the enclosing section, in document order.
 
 The `HELD BACK FOR v2` section is parsed but marked `published: false` and never rendered.
+The repo is public, so unpublished notes belong in the gitignored `held-back.md`, not here.
 
 ### Allowed `status` values
 
@@ -109,6 +110,24 @@ Only these four, exactly:
 Anything else fails validation. These distinctions carry real weight — collapsing
 `certified-section` into `certified` in the UI is a serious bug, not a cosmetic one.
 
+### How entries render
+
+The logic lives in `src/guide.js`.
+
+- Each `#` section is a button on the home menu and its own screen, in file order.
+- Each `##` subsection is a heading on that screen.
+- Each `###` entry is a row. Without tapping, a row shows:
+  - the name and the halal status;
+  - `jummah`, `perk` and `delivery` as highlighted chips;
+  - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`
+    and `price`.
+- Tapping a row shows its other fields, its link, and a Copy address button when there is
+  an address but no link. A row with nothing more to show does not open.
+- An entry made only of `note` and `link` is an always-open card: tips, apps, lists.
+- When every row under a heading has the same value for a field, that value shows once
+  above the rows instead of on each one.
+- `>` blockquotes render as highlighted notes. Use them for warnings.
+
 ---
 
 ## Structure
@@ -119,14 +138,18 @@ CLAUDE.md               this file
 scripts/
   parse.mjs             content.md → content.json
   validate.mjs          schema, status vocabulary, TODO report
+  schema.mjs            allowed keys and statuses
   check-links.mjs       every URL still resolves
+  dev.mjs               local server
 src/
   index.html
-  app.js
+  app.js                home menu, screens, rows, search, Back button
+  guide.js              how entries render; shared with the tests
   styles.css
 tests/
   smoke.spec.js         Playwright
-.github/workflows/      validate, test, deploy
+  unit/                 node:test
+.github/workflows/      validate, test, deploy, weekly link check
 ```
 
 ## Commands
@@ -137,16 +160,21 @@ tests/
 | `npm run check` | Validate the data and report TODO gaps |
 | `npm run dev` | Serve `src/` locally |
 | `npm test` | Playwright suite |
+| `npm run test:unit` | Parser, validator, rendering logic, contrast and guardrails |
+| `npm run links` | Check every link in `content.md` |
 
 ---
 
 ## UI principles
 
 - Mobile-first, single column. Assume a 375px screen and one thumb.
-- Prayer section comes before food. It's what a new student can't find by searching online.
+- Prayer comes before food. It's what a new student can't find by searching online.
 - Status shown as a word plus colour, never colour alone — for colourblind readers and grayscale printing.
 - Minimum 48px tap targets. People tap these while walking.
-- No modals, carousels, or accordions on the food and prayer lists. Accordions hide exactly what people came for.
+- No modals or carousels. Rows may open on tap, but a closed row must always show the name,
+  the halal status word and where it is. Halal status, Jummah, access limits and warnings are
+  highlighted and never folded away.
+- Short, plain words. Say a fact once, as briefly as it stays exact.
 - Dark mode via `prefers-color-scheme`, no toggle. Recheck badge contrast in dark mode rather than inverting.
 - Respect `prefers-reduced-motion`. Visible focus rings. WCAG AA contrast throughout.
 - System font stack. No webfonts, no Google Fonts.

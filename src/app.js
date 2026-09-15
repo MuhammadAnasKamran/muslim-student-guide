@@ -1,41 +1,39 @@
-// Renders content.json. Every node is built with createElement and textContent:
-// never innerHTML (CLAUDE.md rule 5).
+// Renders content.json as an app: a home menu, one screen per content.md
+// section, and rows that open on tap. Every node is built with createElement
+// and textContent, never innerHTML (CLAUDE.md rule 5).
 
 import {
-  FIELD_LABELS,
-  FILTERS,
-  SPECIAL_KEYS,
   STATUS_LABELS,
-  STATUS_NOT_RECORDED,
   entryContexts,
-  fieldMap,
   formatDate,
-  linkText,
+  isInfoCard,
+  menuItems,
   normalize,
+  parseRoute,
+  routeFor,
+  rowParts,
   searchText,
+  sharedFacts,
   statusOf,
 } from './guide.js';
 
 const SEARCH_DELAY_MS = 150;
+const COPY_MESSAGE_MS = 2500;
 
-const main = document.getElementById('guide');
-const controls = document.getElementById('controls');
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search');
-const clearButton = document.getElementById('clear-search');
-const filterGroup = document.getElementById('filters');
-const resultCount = document.getElementById('result-count');
+const app = document.getElementById('app');
+const title = document.getElementById('screen-title');
+const backButton = document.getElementById('back');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-// Rendered nodes, kept so filtering only toggles `hidden`.
 const view = {
-  items: [],
-  groups: [],
-  chips: [],
-  active: new Set(),
-  legend: null,
-  empty: null,
-  emptyTitle: null,
+  meta: null,
+  home: null,
+  screens: new Map(), // screen id -> { section, node, rows: Map(entry id -> <details>) }
+  contexts: [],
+  current: { screen: undefined, entry: null },
+  entryPushed: false, // true when opening a row added a history step
+  cameFromHome: false, // true when the open screen was reached from the home menu
+  homeScroll: 0,
   timer: 0,
 };
 
@@ -48,14 +46,26 @@ async function start() {
     if (!response.ok) throw new Error(`content.json returned HTTP ${response.status}`);
     doc = await response.json();
   } catch (error) {
-    main.replaceChildren(h('p', { class: 'load-error' }, 'The guide could not be loaded. Check your connection and refresh the page.'));
+    app.replaceChildren(h('p', { class: 'load-error' }, 'The guide could not be loaded. Check your connection and refresh the page.'));
     throw error;
   }
-  renderHeader(doc.meta);
-  renderGuide(doc);
-  renderFilters();
-  wireSearch();
-  update({ scroll: false });
+
+  view.meta = doc.meta;
+  view.contexts = entryContexts(doc).map((context) => ({ ...context, text: searchText(context) }));
+  renderFooter(doc.meta);
+
+  const fragment = document.createDocumentFragment();
+  fragment.append(renderHome(doc));
+  for (const section of doc.sections) {
+    if (section.published) fragment.append(renderScreen(section));
+  }
+  app.replaceChildren(fragment);
+
+  history.scrollRestoration = 'manual';
+  backButton.addEventListener('click', goBack);
+  window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', route);
+  route();
 }
 
 // h('p', { class: 'x' }, 'text', childNode) — strings become text nodes, never markup.
@@ -70,95 +80,182 @@ function h(tag, attributes = {}, ...children) {
   return node;
 }
 
-function renderHeader(meta) {
-  document.title = meta.title;
-  setText('site-title', meta.title);
-  setText('site-org', meta.org);
-  setText('site-subtitle', meta.subtitle);
-
-  const footer = document.getElementById('site-footer');
+function renderFooter(meta) {
   const details = [];
   if (meta.version) details.push(`Version ${meta.version}`);
   if (meta.updated) details.push(h('span', {}, 'Updated ', h('time', { datetime: meta.updated }, formatDate(meta.updated))));
-  footer.replaceChildren(
-    meta.org ? h('p', { class: 'footer-org' }, meta.org) : null,
-    details.length ? h('p', { class: 'footer-details' }, ...details.flatMap((d, i) => (i ? [' · ', d] : [d]))) : null,
+  document.getElementById('site-footer').replaceChildren(
+    meta.org ? h('p', {}, meta.org) : '',
+    details.length ? h('p', {}, ...details.flatMap((d, i) => (i ? [' · ', d] : [d]))) : '',
   );
 }
 
-function setText(id, text) {
-  const node = document.getElementById(id);
-  node.textContent = text ?? '';
-  node.hidden = !text;
-}
+// ——— Home: search and the menu ———
 
-// ——— Rendering ———
-
-function renderGuide(doc) {
-  const contexts = entryContexts(doc);
-  const legendBefore = contexts.find((c) => statusOf(c.entry))?.section;
-  const showNotRecorded = contexts.some((c) => c.entry.statusMissing);
-  const items = new Map(
-    contexts.map((c) => [
-      c.entry,
-      {
-        ...c,
-        node: null,
-        text: searchText(c),
-        filters: new Set(FILTERS.filter((filter) => filter.test(c)).map((filter) => filter.id)),
-        hasStatus: Boolean(statusOf(c.entry)),
-      },
-    ]),
+function renderHome(doc) {
+  const input = h('input', {
+    class: 'search-input',
+    id: 'search',
+    type: 'search',
+    autocomplete: 'off',
+    autocapitalize: 'none',
+    spellcheck: 'false',
+    enterkeyhint: 'search',
+    placeholder: 'Room, food, shop or area',
+    'aria-describedby': 'result-count',
+  });
+  const clear = h('button', { class: 'clear-button', type: 'button', hidden: true }, 'Clear', h('span', { class: 'visually-hidden' }, ' search'));
+  const count = h('p', { class: 'result-count', id: 'result-count', 'aria-live': 'polite' });
+  const form = h(
+    'form',
+    { class: 'search', role: 'search' },
+    h('label', { class: 'search-label', for: 'search' }, 'Search the guide'),
+    h('div', { class: 'search-row' }, input, clear),
+    count,
   );
-  const fragment = document.createDocumentFragment();
 
-  for (const section of doc.sections) {
-    if (!section.published) continue;
-    if (section === legendBefore) {
-      view.legend = renderLegend(showNotRecorded);
-      fragment.append(view.legend);
-    }
-    fragment.append(renderSection(section, items));
-  }
-
-  view.items = [...items.values()];
-  view.empty = renderEmptyState();
-  fragment.append(view.empty);
-  main.replaceChildren(fragment);
-}
-
-function renderSection(section, items) {
-  const id = `section-${section.id}`;
-  const node = h(
-    'section',
-    { class: 'section', id, 'data-section-id': section.id, 'aria-labelledby': `${id}-title` },
-    h('h2', { class: 'section-title', id: `${id}-title` }, section.heading),
-    ...section.blocks.map((block) => renderBlock(block, items)),
-  );
-  view.groups.push({ node, items: [...items.values()].filter((item) => item.section === section) });
-
-  for (const sub of section.subsections) {
-    const subId = `section-${sub.id}`;
-    const subNode = h(
-      'section',
-      { class: 'subsection', id: subId, 'data-section-id': sub.id, 'aria-labelledby': `${subId}-title` },
-      h('h2', { class: 'subsection-title', id: `${subId}-title` }, sub.heading),
-      ...sub.blocks.map((block) => renderBlock(block, items)),
+  const menu = h('nav', { class: 'menu', 'aria-label': 'Guide sections' });
+  for (const item of menuItems(doc)) {
+    menu.append(
+      h(
+        'a',
+        { class: 'menu-link', href: routeFor(item.id) },
+        h('span', { class: 'menu-title' }, item.title),
+        item.detail ? h('span', { class: 'menu-detail' }, item.detail) : null,
+      ),
     );
-    view.groups.push({ node: subNode, items: [...items.values()].filter((item) => item.subsection === sub) });
-    node.append(subNode);
   }
+
+  const results = h('div', { class: 'results', hidden: true });
+  const emptyTitle = h('p', { class: 'empty-title' });
+  const reset = h('button', { class: 'button', type: 'button' }, 'Clear search');
+  const empty = h('div', { class: 'empty-state', hidden: true }, emptyTitle, h('p', {}, 'Check the spelling or try a shorter word.'), reset);
+
+  const node = h(
+    'div',
+    { class: 'view', 'data-screen': 'home', hidden: true },
+    doc.meta.subtitle ? h('p', { class: 'home-subtitle' }, doc.meta.subtitle) : null,
+    form,
+    menu,
+    results,
+    empty,
+  );
+  view.home = { node, input, clear, count, menu, results, empty, emptyTitle };
+
+  input.addEventListener('input', () => {
+    clear.hidden = input.value === '';
+    clearTimeout(view.timer);
+    view.timer = setTimeout(runSearch, SEARCH_DELAY_MS);
+  });
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && input.value) {
+      event.preventDefault();
+      clearSearch();
+    }
+  });
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    clearTimeout(view.timer);
+    runSearch();
+    input.blur();
+  });
+  clear.addEventListener('click', clearSearch);
+  reset.addEventListener('click', clearSearch);
   return node;
 }
 
-function renderBlock(block, items) {
-  if (block.type === 'entry') {
-    const node = renderEntry(block);
-    items.get(block).node = node;
-    return node;
+function runSearch() {
+  const { input, count, menu, results, empty, emptyTitle } = view.home;
+  const query = normalize(input.value);
+  if (!query) {
+    menu.hidden = false;
+    results.hidden = true;
+    results.replaceChildren();
+    empty.hidden = true;
+    count.textContent = '';
+    return;
   }
-  if (block.kind === 'paragraph') return h('p', { class: 'prose' }, ...renderRuns(block.runs));
-  if (block.kind === 'blockquote') return h('blockquote', { class: 'callout' }, h('p', {}, ...renderRuns(block.runs)));
+
+  const groups = new Map();
+  for (const context of view.contexts) {
+    if (!context.text.includes(query)) continue;
+    if (!groups.has(context.section)) groups.set(context.section, []);
+    groups.get(context.section).push(context);
+  }
+  const total = [...groups.values()].reduce((n, list) => n + list.length, 0);
+
+  results.replaceChildren(
+    ...[...groups].map(([section, list]) =>
+      h(
+        'section',
+        { class: 'group' },
+        h('h2', { class: 'group-title' }, section.title),
+        ...list.map(({ entry, subsection }) => renderEntry(entry, { context: subsection?.title })),
+      ),
+    ),
+  );
+  menu.hidden = true;
+  results.hidden = total === 0;
+  empty.hidden = total > 0;
+  count.textContent = total === 0 ? 'No results' : `${total} ${total === 1 ? 'result' : 'results'}`;
+  emptyTitle.textContent = `Nothing matches “${input.value.trim()}”.`;
+}
+
+function clearSearch() {
+  const { input, clear } = view.home;
+  input.value = '';
+  clear.hidden = true;
+  clearTimeout(view.timer);
+  runSearch();
+  input.focus();
+}
+
+// ——— Screens ———
+
+function renderScreen(section) {
+  const node = h('div', { class: 'view', 'data-screen': section.id, hidden: true });
+  const rows = new Map();
+  const legend = renderLegend(section);
+  if (legend) node.append(legend);
+  if (section.blocks.length) node.append(renderGroup(section, null, rows));
+  for (const subsection of section.subsections) node.append(renderGroup(section, subsection, rows));
+  view.screens.set(section.id, { section, node, rows });
+  return node;
+}
+
+function renderGroup(section, subsection, rows) {
+  const blocks = (subsection ?? section).blocks;
+  const shared = sharedFacts(blocks.filter((b) => b.type === 'entry'));
+  const group = h('section', { class: 'group' });
+  if (subsection) {
+    const id = `group-${subsection.id}`;
+    group.setAttribute('aria-labelledby', id);
+    group.append(h('h2', { class: 'group-title', id }, subsection.title));
+  }
+
+  let sharedShown = false;
+  for (const block of blocks) {
+    if (block.type === 'prose') {
+      group.append(renderProse(block));
+      continue;
+    }
+    if (!isInfoCard(block) && shared.length && !sharedShown) {
+      group.append(h('p', { class: 'shared' }, h('span', { class: 'visually-hidden' }, 'All of these: '), shared.map((f) => f.value).join(' · ')));
+      sharedShown = true;
+    }
+    const node = renderEntry(block, { shared, routable: true });
+    if (node.tagName === 'DETAILS') {
+      rows.set(block.id, node);
+      wireRow(node, section.id, block.id);
+    }
+    group.append(node);
+  }
+  return group;
+}
+
+function renderProse(block) {
+  if (block.kind === 'paragraph') return h('p', { class: 'intro' }, ...renderRuns(block.runs));
+  if (block.kind === 'blockquote') return h('p', { class: 'alert' }, ...renderRuns(block.runs));
   throw new Error(`Cannot render a "${block.kind}" block (content.md line ${block.line})`);
 }
 
@@ -170,175 +267,186 @@ function renderRuns(runs) {
   });
 }
 
-function renderEntry(entry) {
-  const fields = fieldMap(entry);
-  const id = `entry-${entry.id}`;
-  const article = h('article', { class: 'entry', id, 'data-entry-id': entry.id, 'aria-labelledby': `${id}-name` });
-  article.append(h('h3', { class: 'entry-name', id: `${id}-name` }, entry.name));
-  if (fields.tag) article.append(h('p', { class: 'entry-tag' }, fields.tag));
+// A row in a screen (routable, with shared facts hidden) or in search results
+// (self-contained, labelled with its heading).
+function renderEntry(entry, { shared = [], routable = false, context = null } = {}) {
+  const id = routable ? `entry-${entry.id}` : null;
+  if (isInfoCard(entry)) return renderInfoCard(entry, id, context);
 
-  const status = statusOf(entry);
-  if (status) article.append(renderStatus(status));
+  const parts = rowParts(entry, shared);
+  const head = [
+    context ? h('span', { class: 'row-context' }, context) : null,
+    parts.status || parts.chips.length
+      ? h('span', { class: 'row-badges' }, parts.status ? renderStatus(parts.status) : null, ...parts.chips.map(renderChip))
+      : null,
+    h('h3', { class: 'row-name' }, entry.name),
+    parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
+  ];
 
-  const rows = entry.fields.filter((f) => !SPECIAL_KEYS.includes(f.key));
-  if (rows.length) {
-    const list = h('dl', { class: 'facts' });
-    for (const { key, value } of rows) {
-      const label = FIELD_LABELS[key];
-      if (!label) throw new Error(`No label for key "${key}" on "${entry.name}" (content.md line ${entry.line})`);
-      const detail = h('dd', {}, key === 'jummah' ? (value === 'yes' ? 'Yes' : 'No') : value);
-      if (key === 'jummah' && fields['jummah-note']) detail.append(h('span', { class: 'jummah-note' }, fields['jummah-note']));
-      list.append(h('div', { class: 'fact' }, h('dt', {}, label), detail));
-    }
-    article.append(list);
+  if (!parts.expandable) {
+    return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: 'row-head' }, ...head));
   }
 
-  if (fields.link) {
-    const { text, host } = linkText(fields.link, fields['link-label']);
-    article.append(
-      h(
-        'a',
-        { class: 'entry-link', href: fields.link, rel: 'noopener', target: '_blank' },
-        h('span', { class: 'link-text' }, text),
-        h('span', { class: 'link-host' }, host),
-        h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
-      ),
-    );
+  const body = h('div', { class: 'row-body' });
+  if (parts.facts.length) {
+    body.append(h('dl', { class: 'facts' }, ...parts.facts.map((f) => h('div', { class: 'fact' }, h('dt', {}, f.label), h('dd', {}, f.value)))));
   }
-  return article;
+  if (parts.link) body.append(renderLink(parts.link));
+  if (parts.copyAddress) body.append(renderCopyButton(parts.copyAddress));
+  return h('details', { class: 'row', id, 'data-entry-id': entry.id }, h('summary', { class: 'row-head' }, ...head), body);
+}
+
+function renderInfoCard(entry, id, context) {
+  const { link } = rowParts(entry);
+  const note = entry.fields.find((f) => f.key === 'note')?.value;
+  return h(
+    'div',
+    { class: 'info-card', id, 'data-entry-id': entry.id },
+    context ? h('span', { class: 'row-context' }, context) : null,
+    h('h3', { class: 'info-title' }, entry.name),
+    note ? h('p', { class: 'info-note' }, note) : null,
+    link ? renderLink(link) : null,
+  );
 }
 
 function renderStatus(status) {
+  return h('span', { class: `status status-${status.key}` }, h('span', { class: 'visually-hidden' }, 'Halal status: '), status.label);
+}
+
+function renderChip(chip) {
+  return h('span', { class: chip.muted ? 'chip chip-muted' : 'chip' }, chip.text);
+}
+
+function renderLink({ href, text, host }) {
   return h(
-    'p',
-    { class: `status status-${status.key}` },
-    h('span', { class: 'visually-hidden' }, 'Halal status: '),
-    status.label,
+    'a',
+    { class: 'entry-link', href, rel: 'noopener', target: '_blank' },
+    h('span', { class: 'link-text' }, text),
+    h('span', { class: 'link-host' }, host),
+    h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
   );
 }
 
-function renderLegend(showNotRecorded) {
-  const list = h('dl', { class: 'legend-list' });
-  const items = Object.entries(STATUS_LABELS).map(([key, value]) => ({ key, ...value }));
-  if (showNotRecorded) items.push({ key: 'none', ...STATUS_NOT_RECORDED });
-  for (const item of items) {
-    list.append(
-      h('div', { class: 'legend-item' }, h('dt', {}, h('span', { class: `status status-${item.key}` }, item.label)), h('dd', {}, item.meaning)),
-    );
-  }
-  return h(
-    'aside',
-    { class: 'legend', 'aria-labelledby': 'legend-title' },
-    h('h2', { class: 'legend-title', id: 'legend-title' }, 'What the halal labels mean'),
-    list,
-  );
-}
-
-function renderEmptyState() {
-  view.emptyTitle = h('p', { class: 'empty-title' });
-  const reset = h('button', { class: 'button', type: 'button' }, 'Clear search and filters');
-  reset.addEventListener('click', resetAll);
-  return h(
-    'div',
-    { class: 'empty-state', id: 'empty-state', hidden: true },
-    view.emptyTitle,
-    h('p', {}, 'Check the spelling, try a shorter word, or turn off a filter.'),
-    reset,
-  );
-}
-
-function renderFilters() {
-  for (const filter of [{ id: 'all', label: 'All' }, ...FILTERS]) {
-    const chip = h('button', { class: 'chip', type: 'button', 'data-filter': filter.id, 'aria-pressed': 'false' }, filter.label);
-    chip.addEventListener('click', () => toggleFilter(filter.id));
-    view.chips.push(chip);
-  }
-  filterGroup.replaceChildren(...view.chips);
-}
-
-// ——— Search and filters ———
-
-function wireSearch() {
-  searchInput.addEventListener('input', () => {
-    clearButton.hidden = searchInput.value === '';
-    clearTimeout(view.timer);
-    view.timer = setTimeout(update, SEARCH_DELAY_MS);
+function renderCopyButton(address) {
+  const button = h('button', { class: 'copy-button', type: 'button' }, 'Copy address');
+  let timer = 0;
+  button.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+      button.textContent = 'Address copied';
+    } catch {
+      button.textContent = 'Copy failed. Press and hold the address to copy it.';
+    }
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      button.textContent = 'Copy address';
+    }, COPY_MESSAGE_MS);
   });
-  searchInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && searchInput.value) {
-      event.preventDefault();
-      clearSearch();
+  return button;
+}
+
+function renderLegend(section) {
+  const entries = [...section.blocks, ...section.subsections.flatMap((sub) => sub.blocks)].filter((b) => b.type === 'entry');
+  const used = new Map();
+  for (const entry of entries) {
+    const status = statusOf(entry);
+    if (status) used.set(status.key, status);
+  }
+  if (!used.size) return null;
+
+  const list = h('dl', { class: 'legend-list' });
+  for (const key of [...Object.keys(STATUS_LABELS), 'none']) {
+    const status = used.get(key);
+    if (status) list.append(h('div', { class: 'legend-item' }, h('dt', {}, renderStatus(status)), h('dd', {}, status.meaning)));
+  }
+  return h('details', { class: 'legend' }, h('summary', {}, 'What the halal labels mean'), list);
+}
+
+// ——— Routing: screens, opened rows and the Back button ———
+
+// Opening a row gives it its own address, so the phone's Back button closes it.
+function wireRow(row, screenId, entryId) {
+  row.addEventListener('toggle', () => {
+    const inAddress = view.current.screen === screenId && view.current.entry === entryId;
+    if (row.open && !inAddress) {
+      const address = routeFor(screenId, entryId);
+      if (view.current.entry) {
+        history.replaceState(null, '', address);
+      } else {
+        history.pushState(null, '', address);
+        view.entryPushed = true;
+      }
+      view.current.entry = entryId;
+    } else if (!row.open && inAddress) {
+      view.current.entry = null;
+      if (view.entryPushed) {
+        view.entryPushed = false;
+        history.back();
+      } else {
+        history.replaceState(null, '', routeFor(screenId));
+      }
     }
   });
-  searchForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    clearTimeout(view.timer);
-    update();
-    searchInput.blur();
-  });
-  clearButton.addEventListener('click', clearSearch);
 }
 
-// "All" clears every other chip. Other chips toggle and combine with AND.
-function toggleFilter(id) {
-  if (id === 'all') view.active.clear();
-  else if (view.active.has(id)) view.active.delete(id);
-  else view.active.add(id);
-  update();
-}
-
-function clearSearch() {
-  searchInput.value = '';
-  clearButton.hidden = true;
-  clearTimeout(view.timer);
-  update();
-  searchInput.focus();
-}
-
-function resetAll() {
-  view.active.clear();
-  clearSearch();
-}
-
-function update({ scroll = true } = {}) {
-  const query = normalize(searchInput.value);
-  const active = [...view.active];
-  const filtering = query !== '' || active.length > 0;
-  let shown = 0;
-
-  for (const item of view.items) {
-    const visible = (!query || item.text.includes(query)) && active.every((id) => item.filters.has(id));
-    item.node.hidden = !visible;
-    if (visible) shown += 1;
-  }
-  for (const group of view.groups) {
-    group.node.hidden = filtering && !group.items.some((item) => !item.node.hidden);
-  }
-  if (view.legend) {
-    view.legend.hidden = filtering && !view.items.some((item) => item.hasStatus && !item.node.hidden);
-  }
-  for (const chip of view.chips) {
-    const id = chip.dataset.filter;
-    chip.setAttribute('aria-pressed', String(id === 'all' ? active.length === 0 : view.active.has(id)));
+function route() {
+  const parsed = parseRoute(location.hash);
+  if (!parsed) return;
+  let { screen, entry } = parsed;
+  if (screen && !view.screens.has(screen)) {
+    history.replaceState(null, '', routeFor(null));
+    screen = null;
+    entry = null;
   }
 
-  const total = view.items.length;
-  if (!filtering) resultCount.textContent = `Showing all ${total} listings`;
-  else if (shown === 0) resultCount.textContent = 'No listings match';
-  else resultCount.textContent = `Showing ${shown} of ${total} listings`;
+  const first = view.current.screen === undefined;
+  const changedScreen = first || screen !== view.current.screen;
+  if (changedScreen) showScreen(screen, first);
 
-  const typed = searchInput.value.trim();
-  if (!typed) view.emptyTitle.textContent = 'Nothing matches these filters together.';
-  else if (active.length) view.emptyTitle.textContent = `Nothing matches “${typed}” with these filters.`;
-  else view.emptyTitle.textContent = `Nothing matches “${typed}”.`;
-  view.empty.hidden = shown > 0;
+  const target = screen ? view.screens.get(screen) : null;
+  if (entry && !target?.rows.has(entry)) {
+    history.replaceState(null, '', routeFor(screen));
+    entry = null;
+  }
 
-  if (scroll) scrollToResults();
+  const previous = changedScreen ? null : view.current.entry;
+  view.current = { screen, entry };
+  if (previous && previous !== entry) target.rows.get(previous).open = false;
+  if (!entry) view.entryPushed = false;
+  if (entry) {
+    const row = target.rows.get(entry);
+    if (!row.open) {
+      row.open = true;
+      row.scrollIntoView({ block: 'start', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    }
+  }
 }
 
-// If the reader has scrolled past the top of the results, bring them back so a
-// new search doesn't leave them looking at empty space.
-function scrollToResults() {
-  const top = main.getBoundingClientRect().top + window.scrollY - controls.offsetHeight;
-  if (window.scrollY > top) window.scrollTo({ top, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+function showScreen(screenId, first) {
+  const leaving = view.current.screen;
+  if (!first) {
+    const old = leaving ? view.screens.get(leaving) : null;
+    if (!old) view.homeScroll = window.scrollY;
+    view.cameFromHome = !old && Boolean(screenId);
+    view.current = { screen: screenId, entry: null };
+    if (old) for (const row of old.rows.values()) row.open = false;
+    (old?.node ?? view.home.node).hidden = true;
+  }
+
+  const next = screenId ? view.screens.get(screenId) : null;
+  (next?.node ?? view.home.node).hidden = false;
+  backButton.hidden = !next;
+  title.textContent = next ? next.section.title : view.meta.title;
+  document.title = next ? `${next.section.title} · ${view.meta.title}` : view.meta.title;
+  window.scrollTo(0, next ? 0 : view.homeScroll);
+  if (!first) title.focus({ preventScroll: true });
+}
+
+function goBack() {
+  if (view.cameFromHome) {
+    history.go(view.entryPushed ? -2 : -1);
+  } else {
+    history.replaceState(null, '', routeFor(null));
+    route();
+  }
 }
