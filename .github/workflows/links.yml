@@ -1,0 +1,42 @@
+name: Weekly link check
+
+on:
+  schedule:
+    # Mondays 01:00 UTC, 09:00 in Hong Kong.
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # Needs no npm install: the checker uses only Node built-ins.
+      - name: Check every link in content.md
+        id: links
+        run: node scripts/check-links.mjs
+        env:
+          LINK_REPORT: link-report.md
+
+      - name: Open or update the broken-links issue
+        if: steps.links.outputs.broken != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: Broken links in the guide
+        run: |
+          existing=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file link-report.md
+          else
+            gh issue create --title "$TITLE" --body-file link-report.md
+          fi
