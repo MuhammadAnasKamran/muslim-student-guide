@@ -22,14 +22,16 @@
   <div class="controls" id="controls">
     <div class="wrap">
       <form class="search" id="search-form" role="search">
-        <label class="search-label" for="search">Search the guide</label>
+        <div class="search-head">
+          <label class="search-label" for="search">Search the guide</label>
+          <p class="result-count" id="result-count" aria-live="polite"></p>
+        </div>
         <div class="search-row">
           <input class="search-input" id="search" name="q" type="search" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" placeholder="Room, food, shop or area" aria-describedby="result-count">
           <button class="clear-button" id="clear-search" type="button" hidden>Clear<span class="visually-hidden"> search</span></button>
         </div>
       </form>
       <div class="chips" id="filters" role="group" aria-label="Filter listings"></div>
-      <p class="result-count" id="result-count" aria-live="polite"></p>
     </div>
   </div>
 

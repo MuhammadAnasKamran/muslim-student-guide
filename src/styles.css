@@ -1,46 +1,590 @@
+/* The Muslim Guide to PolyU.
+   Mobile first: one column, sized for a 375px screen and one thumb.
+   Every text/background token pair is contrast-checked in
+   tests/unit/contrast.test.mjs — run it after changing a colour. */
+
 :root {
+  color-scheme: light dark;
+
   --accent: #12695A;
+  --accent-ink: #FFFFFF;
   --ink: #1B2A26;
   --muted: #5F7068;
   --bg: #FAF7F0;
   --surface: #FFFFFF;
-  --line: #DCD6C8;
+  --callout: #F1ECDF;
+  --line: #E2DCCD;
+  --control-border: #5F7068;
+  --focus: #12695A;
+
+  --header-bg: #12695A;
+  --header-ink: #FFFFFF;
+  --header-muted: #DDEEE9;
+
+  --certified-bg: #DCEFE3;
+  --certified-ink: #0F5132;
+  --certified-line: #7FBF97;
+  --amber-bg: #FBEBC8;
+  --amber-ink: #6A4300;
+  --amber-line: #D9A441;
+  --grey-bg: #E8E6E0;
+  --grey-ink: #3D4541;
+  --grey-line: #A9AAA4;
+
+  --radius: 12px;
+  --gutter: 1rem;
+  --sticky-offset: 10rem;
+}
+
+/* Dark mode: each colour chosen and contrast-checked on its own, not inverted. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #6FCDB8;
+    --accent-ink: #0B1512;
+    --ink: #E6EEEA;
+    --muted: #A3B3AB;
+    --bg: #111916;
+    --surface: #1A2420;
+    --callout: #1F2A25;
+    --line: #2E3B35;
+    --control-border: #7D8C85;
+    --focus: #8FDCCB;
+
+    --header-bg: #0F2A24;
+    --header-ink: #E6EEEA;
+    --header-muted: #B5CCC4;
+
+    --certified-bg: #173B2A;
+    --certified-ink: #A6E3BE;
+    --certified-line: #3F8A62;
+    --amber-bg: #3D2E0F;
+    --amber-ink: #F3CD7A;
+    --amber-line: #8E6A1F;
+    --grey-bg: #2A302D;
+    --grey-ink: #CDD5D1;
+    --grey-line: #5E6863;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-.wrap { max-width: 40rem; margin: 0 auto; padding-inline: 1rem; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.skip-link { position: absolute; left: 1rem; top: -4rem; }
-.skip-link:focus { top: 1rem; }
+h1,
+h2,
+h3,
+p,
+dl,
+dd,
+blockquote {
+  margin: 0;
+}
 
-.controls { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 0.5rem; }
-.search-label { display: block; font-weight: 600; }
-.search-row { display: flex; gap: 0.5rem; }
-.search-input { flex: 1; min-height: 48px; font: inherit; }
-.clear-button, .button { min-height: 48px; min-width: 48px; font: inherit; }
-.chips { display: flex; gap: 0.5rem; overflow-x: auto; padding-block: 0.5rem; }
-.chip { flex: none; min-height: 48px; padding-inline: 1rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
-.result-count { margin: 0.25rem 0 0; color: var(--muted); }
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
 
-.entry { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; margin-block: 0.75rem; }
-.entry-name { margin: 0; }
-.facts { margin: 0.5rem 0; }
-.fact dt { color: var(--muted); }
-.fact dd { margin: 0 0 0.5rem; }
-.jummah-note { display: block; }
-.entry-link { display: flex; flex-direction: column; justify-content: center; min-height: 48px; color: var(--accent); }
-.link-host { color: var(--muted); font-size: 0.875rem; }
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
 
-.status { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 4px; font-weight: 600; border: 1px solid; }
-.status-certified { background: #DDF1E4; color: #14532D; }
+#guide:focus {
+  outline: none;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding-inline: 1rem;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* ——— Header ——— */
+
+.site-header {
+  background: var(--header-bg);
+  color: var(--header-ink);
+  padding-block: 1.5rem 1.25rem;
+}
+
+.site-org {
+  color: var(--header-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.site-title {
+  margin-block: 0.25rem;
+  font-size: 1.625rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.site-subtitle {
+  color: var(--header-muted);
+  font-size: 0.9375rem;
+}
+
+/* ——— Sticky search and filters ——— */
+
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding-block: 0.625rem 0.25rem;
+}
+
+.search-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.search-label {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.result-count {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.search-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0.5rem 0.875rem;
+  border: 2px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 1rem;
+  appearance: none;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.search-input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.clear-button {
+  min-width: 48px;
+  min-height: 48px;
+  padding-inline: 0.875rem;
+  border: 2px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chips {
+  display: flex;
+  gap: 0.5rem;
+  margin-inline: calc(var(--gutter) * -1);
+  padding: 0.5rem var(--gutter);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 48px;
+  padding-inline: 1rem;
+  border: 1.5px solid var(--control-border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* A tick as well as colour, so the pressed state survives colourblindness and grayscale. */
+.chip[aria-pressed="true"]::before {
+  content: "✓";
+  content: "✓" / "";
+}
+
+/* ——— Guide ——— */
+
+main {
+  padding-block: 0.5rem 2rem;
+}
+
+.section,
+.subsection,
+.entry,
+.legend {
+  scroll-margin-top: var(--sticky-offset);
+}
+
+.section {
+  margin-top: 1.75rem;
+}
+
+.section-title {
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+.subsection {
+  margin-top: 1.5rem;
+}
+
+.subsection-title {
+  color: var(--ink);
+  font-size: 1.0625rem;
+  line-height: 1.35;
+}
+
+.prose {
+  max-width: 65ch;
+  margin-block: 0.875rem;
+}
+
+.callout {
+  margin-block: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--callout);
+  color: var(--ink);
+}
+
+/* ——— Entry cards ——— */
+
+.entry {
+  margin-block: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.entry-name {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.entry-tag {
+  margin-top: 0.125rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.entry .status {
+  margin-top: 0.5rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--grey-line);
+  border-radius: 6px;
+  background: var(--grey-bg);
+  color: var(--grey-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.status-certified {
+  border-color: var(--certified-line);
+  background: var(--certified-bg);
+  color: var(--certified-ink);
+}
+
 .status-certified-section,
-.status-check-packaging { background: #FCEBC7; color: #6B4500; }
-.status-unverified,
-.status-none { background: #E9E7E1; color: #3F4643; }
+.status-check-packaging {
+  border-color: var(--amber-line);
+  background: var(--amber-bg);
+  color: var(--amber-ink);
+}
+
+.status-unverified {
+  border-color: var(--grey-line);
+  background: var(--grey-bg);
+  color: var(--grey-ink);
+}
+
+/* Dashed, so "not recorded" never reads as the same thing as "unverified". */
+.status-none {
+  border-style: dashed;
+}
+
+.facts {
+  margin-top: 0.75rem;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 6.25rem 1fr;
+  gap: 0.75rem;
+  padding-block: 0.4375rem;
+  border-top: 1px solid var(--line);
+}
+
+.fact dt {
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.fact dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.jummah-note {
+  display: block;
+  margin-top: 0.125rem;
+}
+
+.entry-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 0.75rem;
+  padding: 0.375rem 0.875rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.link-text {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.link-text::after {
+  content: " ↗";
+  content: " ↗" / "";
+}
+
+.link-host {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+/* ——— Legend, empty state, messages ——— */
+
+.legend {
+  margin-top: 1.75rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.legend-title {
+  font-size: 1rem;
+}
+
+.legend-list {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+
+.legend-item dd {
+  margin-top: 0.125rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.empty-state {
+  margin-top: 1.5rem;
+  padding: 1.5rem 1rem;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.empty-state p + p {
+  margin-top: 0.25rem;
+  color: var(--muted);
+}
+
+.button {
+  min-height: 48px;
+  margin-top: 1rem;
+  padding-inline: 1.25rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loading,
+.load-error {
+  margin-top: 2rem;
+  color: var(--muted);
+}
+
+.load-error {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ——— Footer ——— */
+
+.site-footer {
+  padding-block: 1.5rem 2.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* ——— Wider screens: still one column, just more breathing room ——— */
+
+@media (min-width: 40rem) {
+  :root {
+    --gutter: 1.5rem;
+  }
+
+  .site-header {
+    padding-block: 2.25rem 2rem;
+  }
+
+  .site-title {
+    font-size: 2rem;
+  }
+
+  .chips {
+    flex-wrap: wrap;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  .entry {
+    padding: 1.25rem;
+  }
+
+  .fact {
+    grid-template-columns: 8rem 1fr;
+  }
+}
+
+@media (hover: hover) {
+  .chip:hover,
+  .clear-button:hover {
+    border-color: var(--accent);
+  }
+
+  .entry-link:hover .link-text {
+    text-decoration-thickness: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .chip,
+  .clear-button,
+  .button,
+  .skip-link {
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+  }
+}
+
+/* Keep last: toggled elements use single-class selectors, so source order
+   alone makes this win. */
+[hidden] {
+  display: none;
+}
