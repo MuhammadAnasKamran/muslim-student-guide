@@ -19,6 +19,19 @@
     </div>
   </header>
 
+  <div class="controls" id="controls">
+    <div class="wrap">
+      <form class="search" id="search-form" role="search">
+        <label class="search-label" for="search">Search the guide</label>
+        <div class="search-row">
+          <input class="search-input" id="search" name="q" type="search" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="search" placeholder="Room, food, shop or area" aria-describedby="result-count">
+          <button class="clear-button" id="clear-search" type="button" hidden>Clear<span class="visually-hidden"> search</span></button>
+        </div>
+      </form>
+      <p class="result-count" id="result-count" aria-live="polite"></p>
+    </div>
+  </div>
+
   <main class="wrap" id="guide" tabindex="-1">
     <p class="loading">Loading the guide…</p>
     <noscript><p class="load-error">This guide needs JavaScript turned on to show its listings.</p></noscript>

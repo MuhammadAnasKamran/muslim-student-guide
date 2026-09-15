@@ -1,9 +1,32 @@
 // Renders content.json. Every node is built with createElement and textContent:
 // never innerHTML (CLAUDE.md rule 5).
 
-import { FIELD_LABELS, SPECIAL_KEYS, STATUS_LABELS, STATUS_NOT_RECORDED, entryContexts, fieldMap, formatDate, linkText, statusOf } from './guide.js';
+import {
+  FIELD_LABELS,
+  SPECIAL_KEYS,
+  STATUS_LABELS,
+  STATUS_NOT_RECORDED,
+  entryContexts,
+  fieldMap,
+  formatDate,
+  linkText,
+  normalize,
+  searchText,
+  statusOf,
+} from './guide.js';
+
+const SEARCH_DELAY_MS = 150;
 
 const main = document.getElementById('guide');
+const controls = document.getElementById('controls');
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search');
+const clearButton = document.getElementById('clear-search');
+const resultCount = document.getElementById('result-count');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+// Rendered nodes, kept so filtering only toggles `hidden`.
+const view = { items: [], groups: [], legend: null, empty: null, emptyTitle: null, timer: 0 };
 
 start();
 
@@ -19,6 +42,8 @@ async function start() {
   }
   renderHeader(doc.meta);
   renderGuide(doc);
+  wireSearch();
+  update({ scroll: false });
 }
 
 // h('p', { class: 'x' }, 'text', childNode) — strings become text nodes, never markup.
@@ -55,42 +80,60 @@ function setText(id, text) {
   node.hidden = !text;
 }
 
+// ——— Rendering ———
+
 function renderGuide(doc) {
   const contexts = entryContexts(doc);
-  const legendBefore = contexts.find((c) => statusOf(c.entry))?.section.id;
+  const legendBefore = contexts.find((c) => statusOf(c.entry))?.section;
   const showNotRecorded = contexts.some((c) => c.entry.statusMissing);
+  const items = new Map(contexts.map((c) => [c.entry, { ...c, node: null, text: searchText(c), hasStatus: Boolean(statusOf(c.entry)) }]));
   const fragment = document.createDocumentFragment();
 
   for (const section of doc.sections) {
     if (!section.published) continue;
-    if (section.id === legendBefore) fragment.append(renderLegend(showNotRecorded));
-    fragment.append(renderSection(section));
+    if (section === legendBefore) {
+      view.legend = renderLegend(showNotRecorded);
+      fragment.append(view.legend);
+    }
+    fragment.append(renderSection(section, items));
   }
+
+  view.items = [...items.values()];
+  view.empty = renderEmptyState();
+  fragment.append(view.empty);
   main.replaceChildren(fragment);
 }
 
-function renderSection(section) {
+function renderSection(section, items) {
+  const id = `section-${section.id}`;
   const node = h(
     'section',
-    { class: 'section', id: section.id, 'aria-labelledby': `${section.id}-title` },
-    h('h2', { class: 'section-title', id: `${section.id}-title` }, section.heading),
-    ...section.blocks.map(renderBlock),
+    { class: 'section', id, 'data-section-id': section.id, 'aria-labelledby': `${id}-title` },
+    h('h2', { class: 'section-title', id: `${id}-title` }, section.heading),
+    ...section.blocks.map((block) => renderBlock(block, items)),
   );
+  view.groups.push({ node, items: [...items.values()].filter((item) => item.section === section) });
+
   for (const sub of section.subsections) {
-    node.append(
-      h(
-        'section',
-        { class: 'subsection', id: sub.id, 'aria-labelledby': `${sub.id}-title` },
-        h('h2', { class: 'subsection-title', id: `${sub.id}-title` }, sub.heading),
-        ...sub.blocks.map(renderBlock),
-      ),
+    const subId = `section-${sub.id}`;
+    const subNode = h(
+      'section',
+      { class: 'subsection', id: subId, 'data-section-id': sub.id, 'aria-labelledby': `${subId}-title` },
+      h('h2', { class: 'subsection-title', id: `${subId}-title` }, sub.heading),
+      ...sub.blocks.map((block) => renderBlock(block, items)),
     );
+    view.groups.push({ node: subNode, items: [...items.values()].filter((item) => item.subsection === sub) });
+    node.append(subNode);
   }
   return node;
 }
 
-function renderBlock(block) {
-  if (block.type === 'entry') return renderEntry(block);
+function renderBlock(block, items) {
+  if (block.type === 'entry') {
+    const node = renderEntry(block);
+    items.get(block).node = node;
+    return node;
+  }
   if (block.kind === 'paragraph') return h('p', { class: 'prose' }, ...renderRuns(block.runs));
   if (block.kind === 'blockquote') return h('blockquote', { class: 'callout' }, h('p', {}, ...renderRuns(block.runs)));
   throw new Error(`Cannot render a "${block.kind}" block (content.md line ${block.line})`);
@@ -166,4 +209,82 @@ function renderLegend(showNotRecorded) {
     h('h2', { class: 'legend-title', id: 'legend-title' }, 'What the halal labels mean'),
     list,
   );
+}
+
+function renderEmptyState() {
+  view.emptyTitle = h('p', { class: 'empty-title' });
+  const reset = h('button', { class: 'button', type: 'button' }, 'Clear search');
+  reset.addEventListener('click', clearSearch);
+  return h(
+    'div',
+    { class: 'empty-state', id: 'empty-state', hidden: true },
+    view.emptyTitle,
+    h('p', {}, 'Check the spelling or try a shorter word.'),
+    reset,
+  );
+}
+
+// ——— Search ———
+
+function wireSearch() {
+  searchInput.addEventListener('input', () => {
+    clearButton.hidden = searchInput.value === '';
+    clearTimeout(view.timer);
+    view.timer = setTimeout(update, SEARCH_DELAY_MS);
+  });
+  searchInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && searchInput.value) {
+      event.preventDefault();
+      clearSearch();
+    }
+  });
+  searchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    clearTimeout(view.timer);
+    update();
+    searchInput.blur();
+  });
+  clearButton.addEventListener('click', clearSearch);
+}
+
+function clearSearch() {
+  searchInput.value = '';
+  clearButton.hidden = true;
+  clearTimeout(view.timer);
+  update();
+  searchInput.focus();
+}
+
+function update({ scroll = true } = {}) {
+  const query = normalize(searchInput.value);
+  const filtering = query !== '';
+  let shown = 0;
+
+  for (const item of view.items) {
+    const visible = !filtering || item.text.includes(query);
+    item.node.hidden = !visible;
+    if (visible) shown += 1;
+  }
+  for (const group of view.groups) {
+    group.node.hidden = filtering && !group.items.some((item) => !item.node.hidden);
+  }
+  if (view.legend) {
+    view.legend.hidden = filtering && !view.items.some((item) => item.hasStatus && !item.node.hidden);
+  }
+
+  const total = view.items.length;
+  if (!filtering) resultCount.textContent = `Showing all ${total} listings`;
+  else if (shown === 0) resultCount.textContent = 'No listings match';
+  else resultCount.textContent = `Showing ${shown} of ${total} listings`;
+
+  view.emptyTitle.textContent = `Nothing matches “${searchInput.value.trim()}”.`;
+  view.empty.hidden = shown > 0;
+  if (scroll) scrollToResults();
+}
+
+// If the reader has scrolled past the top of the results, bring them back so a
+// new search doesn't leave them looking at empty space.
+function scrollToResults() {
+  const top = main.getBoundingClientRect().top + window.scrollY - controls.offsetHeight;
+  if (window.scrollY > top) window.scrollTo({ top, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
 }

@@ -87,6 +87,31 @@ export function entryContexts(doc) {
   return out;
 }
 
+// Search matches what a student can read on the card: section and subsection
+// headings, the name, field values and the status word. URLs and link text
+// generated from URLs are left out, so "google" doesn't match every map link.
+export function searchText({ entry, section, subsection }) {
+  const parts = [section.title, subsection?.title, entry.name, statusOf(entry)?.label];
+  for (const { key, value } of entry.fields) {
+    if (key === 'link' || key === 'status') continue;
+    // The card reads "Jummah: Yes", so a search for "jummah" should find it.
+    if (key === 'jummah') parts.push(value === 'yes' ? 'Jummah' : '');
+    else parts.push(value);
+  }
+  return parts.filter(Boolean).map(normalize).join('\n');
+}
+
+// Case-insensitive, and forgiving about the dashes and quotes phones don't type:
+// "Shop 729-733" finds "Shop 729–733".
+export function normalize(text) {
+  return text
+    .toLowerCase()
+    .replace(/[‐-―−]/g, '-')
+    .replace(/[‘’]/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function formatDate(iso) {
   const date = new Date(`${iso}T00:00:00Z`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || Number.isNaN(date.getTime())) return iso;

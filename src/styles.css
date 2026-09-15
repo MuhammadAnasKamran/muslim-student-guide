@@ -19,6 +19,13 @@ body {
 .skip-link { position: absolute; left: 1rem; top: -4rem; }
 .skip-link:focus { top: 1rem; }
 
+.controls { position: sticky; top: 0; z-index: 1; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 0.5rem; }
+.search-label { display: block; font-weight: 600; }
+.search-row { display: flex; gap: 0.5rem; }
+.search-input { flex: 1; min-height: 48px; font: inherit; }
+.clear-button, .button { min-height: 48px; min-width: 48px; font: inherit; }
+.result-count { margin: 0.25rem 0 0; color: var(--muted); }
+
 .entry { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; margin-block: 0.75rem; }
 .entry-name { margin: 0; }
 .facts { margin: 0.5rem 0; }
