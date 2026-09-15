@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+# Every step in `build` must pass before `deploy` runs. If content.md fails
+# validation or the build breaks, nothing is uploaded and the live guide
+# stays exactly as it was.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Validate content.md
+        run: npm run check
+
+      - name: Build content.json
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test the built guide
+        run: npx playwright test
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          cp -R src/. _site/
+          cp content.json _site/content.json
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
