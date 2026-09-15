@@ -87,6 +87,61 @@ export function entryContexts(doc) {
   return out;
 }
 
+// Filter chips. Each rule reads only what content.md already says: headings,
+// names, and a few fields. `rule` is the plain-English version, printed by
+// the checks so a committee member can see why a listing appears under a chip.
+const mentions = (pattern, ...texts) => texts.some((text) => pattern.test(text ?? ''));
+
+function isNearHalls({ entry, section, subsection }) {
+  const f = fieldMap(entry);
+  return mentions(/\bhalls?\b/i, section.title, subsection?.title, entry.name, f.where, f.location, f.walk);
+}
+
+export const FILTERS = [
+  {
+    id: 'certified',
+    label: 'Fully certified',
+    rule: 'status is exactly "certified". certified-section, check-packaging and unverified are left out.',
+    test: ({ entry }) => fieldMap(entry).status === 'certified',
+  },
+  {
+    id: 'near-campus',
+    label: 'Near campus',
+    rule: 'section heading says "on campus", subsection says "Closest to PolyU", or the name says "near campus" — minus anything that matches Near halls.',
+    test: (ctx) =>
+      !isNearHalls(ctx) &&
+      (mentions(/\bon campus\b/i, ctx.section.title) ||
+        mentions(/\bclosest to polyu\b/i, ctx.subsection?.title) ||
+        mentions(/\bnear campus\b/i, ctx.entry.name)),
+  },
+  {
+    id: 'near-halls',
+    label: 'Near halls',
+    rule: 'section heading, subsection heading, name, "where", "location" or "walk" mentions "hall" or "halls".',
+    test: isNearHalls,
+  },
+  {
+    id: 'delivery',
+    label: 'Delivery',
+    rule: 'section or subsection heading says "delivery", or the entry has a "delivery" field.',
+    test: ({ entry, section, subsection }) =>
+      mentions(/\bdelivery\b/i, section.title, subsection?.title) || entry.fields.some((f) => f.key === 'delivery'),
+  },
+  {
+    id: 'prayer',
+    label: 'Prayer',
+    rule: 'section heading, subsection heading or name says "prayer", and the section heading does not say "mosque".',
+    test: ({ entry, section, subsection }) =>
+      mentions(/\bprayer\b/i, section.title, subsection?.title, entry.name) && !mentions(/\bmosques?\b/i, section.title),
+  },
+  {
+    id: 'mosques',
+    label: 'Mosques',
+    rule: 'section heading says "mosque" or "mosques".',
+    test: ({ section }) => mentions(/\bmosques?\b/i, section.title),
+  },
+];
+
 // Search matches what a student can read on the card: section and subsection
 // headings, the name, field values and the status word. URLs and link text
 // generated from URLs are left out, so "google" doesn't match every map link.

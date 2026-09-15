@@ -24,6 +24,9 @@ body {
 .search-row { display: flex; gap: 0.5rem; }
 .search-input { flex: 1; min-height: 48px; font: inherit; }
 .clear-button, .button { min-height: 48px; min-width: 48px; font: inherit; }
+.chips { display: flex; gap: 0.5rem; overflow-x: auto; padding-block: 0.5rem; }
+.chip { flex: none; min-height: 48px; padding-inline: 1rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
 .result-count { margin: 0.25rem 0 0; color: var(--muted); }
 
 .entry { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; margin-block: 0.75rem; }

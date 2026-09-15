@@ -3,6 +3,7 @@
 
 import {
   FIELD_LABELS,
+  FILTERS,
   SPECIAL_KEYS,
   STATUS_LABELS,
   STATUS_NOT_RECORDED,
@@ -22,11 +23,21 @@ const controls = document.getElementById('controls');
 const searchForm = document.getElementById('search-form');
 const searchInput = document.getElementById('search');
 const clearButton = document.getElementById('clear-search');
+const filterGroup = document.getElementById('filters');
 const resultCount = document.getElementById('result-count');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 // Rendered nodes, kept so filtering only toggles `hidden`.
-const view = { items: [], groups: [], legend: null, empty: null, emptyTitle: null, timer: 0 };
+const view = {
+  items: [],
+  groups: [],
+  chips: [],
+  active: new Set(),
+  legend: null,
+  empty: null,
+  emptyTitle: null,
+  timer: 0,
+};
 
 start();
 
@@ -42,6 +53,7 @@ async function start() {
   }
   renderHeader(doc.meta);
   renderGuide(doc);
+  renderFilters();
   wireSearch();
   update({ scroll: false });
 }
@@ -86,7 +98,18 @@ function renderGuide(doc) {
   const contexts = entryContexts(doc);
   const legendBefore = contexts.find((c) => statusOf(c.entry))?.section;
   const showNotRecorded = contexts.some((c) => c.entry.statusMissing);
-  const items = new Map(contexts.map((c) => [c.entry, { ...c, node: null, text: searchText(c), hasStatus: Boolean(statusOf(c.entry)) }]));
+  const items = new Map(
+    contexts.map((c) => [
+      c.entry,
+      {
+        ...c,
+        node: null,
+        text: searchText(c),
+        filters: new Set(FILTERS.filter((filter) => filter.test(c)).map((filter) => filter.id)),
+        hasStatus: Boolean(statusOf(c.entry)),
+      },
+    ]),
+  );
   const fragment = document.createDocumentFragment();
 
   for (const section of doc.sections) {
@@ -213,18 +236,27 @@ function renderLegend(showNotRecorded) {
 
 function renderEmptyState() {
   view.emptyTitle = h('p', { class: 'empty-title' });
-  const reset = h('button', { class: 'button', type: 'button' }, 'Clear search');
-  reset.addEventListener('click', clearSearch);
+  const reset = h('button', { class: 'button', type: 'button' }, 'Clear search and filters');
+  reset.addEventListener('click', resetAll);
   return h(
     'div',
     { class: 'empty-state', id: 'empty-state', hidden: true },
     view.emptyTitle,
-    h('p', {}, 'Check the spelling or try a shorter word.'),
+    h('p', {}, 'Check the spelling, try a shorter word, or turn off a filter.'),
     reset,
   );
 }
 
-// ——— Search ———
+function renderFilters() {
+  for (const filter of [{ id: 'all', label: 'All' }, ...FILTERS]) {
+    const chip = h('button', { class: 'chip', type: 'button', 'data-filter': filter.id, 'aria-pressed': 'false' }, filter.label);
+    chip.addEventListener('click', () => toggleFilter(filter.id));
+    view.chips.push(chip);
+  }
+  filterGroup.replaceChildren(...view.chips);
+}
+
+// ——— Search and filters ———
 
 function wireSearch() {
   searchInput.addEventListener('input', () => {
@@ -247,6 +279,14 @@ function wireSearch() {
   clearButton.addEventListener('click', clearSearch);
 }
 
+// "All" clears every other chip. Other chips toggle and combine with AND.
+function toggleFilter(id) {
+  if (id === 'all') view.active.clear();
+  else if (view.active.has(id)) view.active.delete(id);
+  else view.active.add(id);
+  update();
+}
+
 function clearSearch() {
   searchInput.value = '';
   clearButton.hidden = true;
@@ -255,13 +295,19 @@ function clearSearch() {
   searchInput.focus();
 }
 
+function resetAll() {
+  view.active.clear();
+  clearSearch();
+}
+
 function update({ scroll = true } = {}) {
   const query = normalize(searchInput.value);
-  const filtering = query !== '';
+  const active = [...view.active];
+  const filtering = query !== '' || active.length > 0;
   let shown = 0;
 
   for (const item of view.items) {
-    const visible = !filtering || item.text.includes(query);
+    const visible = (!query || item.text.includes(query)) && active.every((id) => item.filters.has(id));
     item.node.hidden = !visible;
     if (visible) shown += 1;
   }
@@ -271,14 +317,22 @@ function update({ scroll = true } = {}) {
   if (view.legend) {
     view.legend.hidden = filtering && !view.items.some((item) => item.hasStatus && !item.node.hidden);
   }
+  for (const chip of view.chips) {
+    const id = chip.dataset.filter;
+    chip.setAttribute('aria-pressed', String(id === 'all' ? active.length === 0 : view.active.has(id)));
+  }
 
   const total = view.items.length;
   if (!filtering) resultCount.textContent = `Showing all ${total} listings`;
   else if (shown === 0) resultCount.textContent = 'No listings match';
   else resultCount.textContent = `Showing ${shown} of ${total} listings`;
 
-  view.emptyTitle.textContent = `Nothing matches “${searchInput.value.trim()}”.`;
+  const typed = searchInput.value.trim();
+  if (!typed) view.emptyTitle.textContent = 'Nothing matches these filters together.';
+  else if (active.length) view.emptyTitle.textContent = `Nothing matches “${typed}” with these filters.`;
+  else view.emptyTitle.textContent = `Nothing matches “${typed}”.`;
   view.empty.hidden = shown > 0;
+
   if (scroll) scrollToResults();
 }
 
