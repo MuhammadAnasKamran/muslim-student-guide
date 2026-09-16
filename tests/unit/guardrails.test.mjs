@@ -53,3 +53,11 @@ test('the site has a distinct word for exactly the four allowed statuses', () =>
   const words = Object.values(STATUS_LABELS).map((s) => s.label);
   assert.equal(new Set(words).size, words.length);
 });
+
+test('the background photo is sized to the large viewport, so it does not slide on a phone', () => {
+  const css = read('src/styles.css');
+  const rule = css.slice(css.indexOf('body::before {'), css.indexOf('}', css.indexOf('body::before {')));
+  assert.match(rule, /position:\s*fixed/);
+  assert.match(rule, /height:\s*100lvh/, 'inset: 0 resizes as the toolbar hides; 100lvh does not');
+  assert.doesNotMatch(rule, /inset:\s*0/);
+});

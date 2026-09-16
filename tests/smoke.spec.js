@@ -134,6 +134,37 @@ test('map links carry a pin icon drawn in the page', async ({ page }) => {
   expect(external, 'the page must not load anything from a third party').toEqual([]);
 });
 
+test('pressing a card keeps its rounded corners, and buttons match the card shape', async ({ page }) => {
+  await page.goto('/#/prayer-facilities/z302a');
+  const view = screenView(page, 'prayer-facilities');
+  await expect(view.locator('details.row[open]').first()).toBeVisible();
+
+  const shapes = await page.evaluate(() => {
+    const radius = (el) => parseFloat(getComputedStyle(el).borderTopLeftRadius);
+    const openRow = document.querySelector('[data-screen="prayer-facilities"] details.row[open]');
+    // Z302a is the only row that opens on this screen, so take a closed one from anywhere.
+    const closedRow = document.querySelector('details.row:not([open])');
+    const link = openRow.querySelector('.entry-link');
+    return {
+      tapFlash: getComputedStyle(document.documentElement).webkitTapHighlightColor,
+      row: radius(openRow),
+      rowHead: radius(openRow.querySelector('.row-head')),
+      rowHeadBottom: parseFloat(getComputedStyle(openRow.querySelector('.row-head')).borderBottomLeftRadius),
+      closedHeadBottom: parseFloat(getComputedStyle(closedRow.querySelector('.row-head')).borderBottomLeftRadius),
+      link: radius(link),
+      menu: radius(document.querySelector('.menu-link')),
+    };
+  });
+
+  expect(shapes.tapFlash, 'the browser tap flash is a rectangle, so it is switched off').toBe('rgba(0, 0, 0, 0)');
+  expect(shapes.rowHead, 'the tap area carries the card corner').toBeGreaterThan(0);
+  expect(shapes.rowHead).toBeLessThanOrEqual(shapes.row);
+  expect(shapes.rowHeadBottom, 'an open row keeps square corners where it meets its details').toBe(0);
+  expect(shapes.closedHeadBottom, 'a closed row is rounded on all four corners').toBeGreaterThan(0);
+  expect(shapes.link, 'buttons are rounded rectangles, not pills').toBeLessThan(20);
+  expect(shapes.menu).toBe(shapes.row);
+});
+
 test('tapping a row opens it, and Back closes it, then returns home', async ({ page }) => {
   const { screens } = load();
   const { id: screenId, title } = screens[0].section;
