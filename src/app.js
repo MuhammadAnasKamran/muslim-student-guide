@@ -62,6 +62,12 @@ async function start() {
   }
   app.replaceChildren(fragment);
 
+  // A shadow under the bar once the screen scrolls, so it reads as fixed.
+  const appbar = document.querySelector('.appbar');
+  const onScroll = () => appbar.classList.toggle('appbar-raised', window.scrollY > 4);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
   history.scrollRestoration = 'manual';
   backButton.addEventListener('click', goBack);
   window.addEventListener('hashchange', route);
@@ -121,6 +127,7 @@ function renderHome(doc) {
       h(
         'a',
         { class: 'menu-link', href: routeFor(item.id) },
+        menuIcon(item.title),
         h('span', { class: 'menu-title' }, item.title),
         item.detail ? h('span', { class: 'menu-detail' }, item.detail) : null,
       ),
@@ -341,26 +348,53 @@ function renderLink({ href, text, host }) {
   );
 }
 
-// Drawn here rather than loaded from a map service: no third-party requests, and
-// no URL that isn't in content.md (CLAUDE.md rules 1 and 4).
-function mapPin() {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'link-icon');
+// Icons are drawn here rather than loaded from an icon service: no third-party
+// requests, and no URL that isn't in content.md (CLAUDE.md rules 1 and 4).
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function svgIcon(className, paths) {
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('class', className);
   svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.75');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
   svg.setAttribute('aria-hidden', 'true');
-  const pin = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  pin.setAttribute('d', 'M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Z');
-  pin.setAttribute('fill', 'none');
-  pin.setAttribute('stroke', 'currentColor');
-  pin.setAttribute('stroke-width', '2');
-  pin.setAttribute('stroke-linejoin', 'round');
-  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  dot.setAttribute('cx', '12');
-  dot.setAttribute('cy', '9');
-  dot.setAttribute('r', '2.5');
-  dot.setAttribute('fill', 'currentColor');
-  svg.append(pin, dot);
+  for (const d of paths) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
   return svg;
+}
+
+function mapPin() {
+  const svg = svgIcon('link-icon', ['M12 2.75a6.75 6.75 0 0 0-6.75 6.75c0 4.75 6.75 11.75 6.75 11.75s6.75-7 6.75-11.75A6.75 6.75 0 0 0 12 2.75Z']);
+  const dot = document.createElementNS(SVG_NS, 'circle');
+  dot.setAttribute('cx', '12');
+  dot.setAttribute('cy', '9.5');
+  dot.setAttribute('r', '2.25');
+  dot.setAttribute('fill', 'currentColor');
+  dot.setAttribute('stroke', 'none');
+  svg.append(dot);
+  return svg;
+}
+
+// Matched on the heading's own words, so renaming a section keeps its icon.
+const MENU_ICONS = [
+  [/prayer|salah|jummah/i, ['M4.5 20v-7.5a7.5 7.5 0 0 1 15 0V20', 'M2.5 20h19']],
+  [/washroom|wudu|toilet|bidet/i, ['M12 3.25s5.75 6.1 5.75 9.75a5.75 5.75 0 1 1-11.5 0C6.25 9.35 12 3.25 12 3.25Z']],
+  [/mosque|masjid|musolla/i, ['M5.5 20v-4.5a6.5 6.5 0 0 1 13 0V20', 'M3 20h18', 'M12 9V6.25', 'M9.5 20v-3.5a2.5 2.5 0 0 1 5 0V20']],
+  [/food|eat|canteen|restaurant|meal/i, ['M3.5 12h17a8.5 8.5 0 0 1-17 0Z', 'M2.5 20h19', 'M9 4.5v3', 'M12 3.5v4', 'M15 4.5v3']],
+  [/grocer|shop|market|store/i, ['M6.5 8.5h11l1 11h-13Z', 'M9.5 8.5a2.5 2.5 0 0 1 5 0']],
+];
+const FALLBACK_ICON = ['M5 6.5h14', 'M5 12h14', 'M5 17.5h9'];
+
+function menuIcon(title) {
+  const match = MENU_ICONS.find(([pattern]) => pattern.test(title));
+  return svgIcon('menu-icon', match ? match[1] : FALLBACK_ICON);
 }
 
 function renderCopyButton(address) {
