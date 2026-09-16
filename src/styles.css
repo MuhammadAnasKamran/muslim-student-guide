@@ -3,90 +3,50 @@
    Every text/background token pair is contrast-checked in
    tests/unit/contrast.test.mjs — run it after changing a colour. */
 
+/* One theme for now: the light palette was removed on 2026-09-16 because the
+   background photograph only works on a dark ground. Restoring it means adding
+   a light palette back here and a prefers-color-scheme block, plus its figures
+   in tests/unit/contrast.test.mjs. */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  --accent: #12695A;
-  --accent-ink: #FFFFFF;
-  --accent-soft: #E3F0EC;
-  --ink: #1B2A26;
-  --muted: #5F7068;
-  --bg: #FAF7F0;
-  --surface: #FFFFFF;
-  --line: #E2DCCD;
-  --control-border: #5F7068;
-  --focus: #12695A;
-
-  --header-bg: #12695A;
-  --header-ink: #FFFFFF;
-  --header-glass: rgb(18 105 90 / 92%);
-
-  --warn-bg: #FDF3DC;
-  --warn-ink: #5C3B00;
-  --warn-line: #E0B45A;
-
-  --certified-bg: #DCEFE3;
-  --certified-ink: #0F5132;
-  --certified-line: #5DAF7E;
-  --amber-bg: #FBEBC8;
-  --amber-ink: #6A4300;
-  --amber-line: #D9A441;
-  --grey-bg: #E8E6E0;
-  --grey-ink: #3D4541;
-  --grey-line: #A9AAA4;
-
-  --glass-fill: rgb(255 255 255 / 0.84);
-  --glass-border: rgb(27 42 38 / 0.10);
-  --glass-sheen: rgb(255 255 255 / 0.95);
-  --glass-underglow: rgb(255 255 255 / 0.30);
-  --glass-shadow: 0 6px 18px rgb(27 42 38 / 0.10);
-  --scrim: rgb(250 247 240 / 0.90);
-
+  --accent: #6FCDB8;
+  --accent-ink: #0B1512;
+  --accent-soft: #173029;
+  --ink: #E6EEEA;
+  --muted: #A3B3AB;
+  --bg: #111916;
+  --surface: #1A2420;
+  --line: #2E3B35;
+  --control-border: #7D8C85;
+  --focus: #8FDCCB;
+  --header-bg: #0F2A24;
+  --header-ink: #E6EEEA;
+  --header-glass: rgb(15 42 36 / 92%);
+  --warn-bg: #33270C;
+  --warn-ink: #F6D58E;
+  --warn-line: #8E6A1F;
+  --certified-bg: #173B2A;
+  --certified-ink: #A6E3BE;
+  --certified-line: #3F8A62;
+  --amber-bg: #3D2E0F;
+  --amber-ink: #F3CD7A;
+  --amber-line: #8E6A1F;
+  --grey-bg: #2A302D;
+  --grey-ink: #CDD5D1;
+  --grey-line: #5E6863;
+  --glass-fill: rgb(230 238 234 / 0.09);
+  --glass-border: rgb(255 255 255 / 0.14);
+  --glass-sheen: rgb(255 255 255 / 0.38);
+  --glass-underglow: rgb(255 255 255 / 0.06);
+  --glass-shadow: 0 6px 18px rgb(0 0 0 / 0.38);
+  --scrim: rgb(17 25 22 / 0.78);
   --radius: 12px;
   --gutter: 1rem;
   --appbar-height: 3.5rem;
 }
 
 /* Dark mode: each colour chosen and contrast-checked on its own, not inverted. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --accent: #6FCDB8;
-    --accent-ink: #0B1512;
-    --accent-soft: #173029;
-    --ink: #E6EEEA;
-    --muted: #A3B3AB;
-    --bg: #111916;
-    --surface: #1A2420;
-    --line: #2E3B35;
-    --control-border: #7D8C85;
-    --focus: #8FDCCB;
-
-    --header-bg: #0F2A24;
-    --header-ink: #E6EEEA;
-    --header-glass: rgb(15 42 36 / 92%);
-
-    --warn-bg: #33270C;
-    --warn-ink: #F6D58E;
-    --warn-line: #8E6A1F;
-
-    --certified-bg: #173B2A;
-    --certified-ink: #A6E3BE;
-    --certified-line: #3F8A62;
-    --amber-bg: #3D2E0F;
-    --amber-ink: #F3CD7A;
-    --amber-line: #8E6A1F;
-    --grey-bg: #2A302D;
-    --grey-ink: #CDD5D1;
-    --grey-line: #5E6863;
-
-    --glass-fill: rgb(230 238 234 / 0.09);
-    --glass-border: rgb(255 255 255 / 0.14);
-    --glass-sheen: rgb(255 255 255 / 0.38);
-    --glass-underglow: rgb(255 255 255 / 0.06);
-    --glass-shadow: 0 6px 18px rgb(0 0 0 / 0.38);
-    --scrim: rgb(17 25 22 / 0.78);
-  }
-}
 
 *,
 *::before,

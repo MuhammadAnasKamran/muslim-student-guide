@@ -181,7 +181,9 @@ tests/
   status word must be visible without tapping — on the row, or once above a group where every
   row shares it. Halal status, prayer times, access limits and warnings are never folded away.
 - Short, plain words, as tags rather than sentences. Say a fact once, as briefly as it stays exact.
-- Dark mode via `prefers-color-scheme`, no toggle. Recheck badge contrast in dark mode rather than inverting.
+- One theme, dark, for now: the light palette was removed on 2026-09-16 because the
+  background photograph only reads on a dark ground. Bringing light mode back means a
+  second palette plus its own figures in `tests/unit/contrast.test.mjs`.
 - Respect `prefers-reduced-motion`. Visible focus rings. WCAG AA contrast throughout.
 - System font stack. No webfonts, no Google Fonts.
 - The background photograph is `src/background.jpg`, by Muhsin ck from Unsplash (photo
@@ -192,15 +194,20 @@ tests/
 
 ### Colours
 
+The dark palette in use:
+
 | Token | Value |
 |---|---|
-| Accent | `#12695A` |
-| Ink | `#1B2A26` |
-| Muted | `#5F7068` |
-| Background | `#FAF7F0` |
+| Accent | `#6FCDB8` |
+| Ink | `#E6EEEA` |
+| Muted | `#A3B3AB` |
+| Background | `#111916` |
+| Header | `#0F2A24` |
 | Certified | green tint |
 | Check packaging / certified section | amber tint |
 | Unverified | neutral grey |
+
+MUSA's brand green `#12695A` is the accent for light mode, which returns with it.
 
 ---
 
