@@ -100,6 +100,13 @@ test('Copy address appears only when there is no map link; rows with nothing mor
   assert.equal(rowParts(entry('Hall', { location: '2/F' })).expandable, false);
 });
 
+test('a warning is shown on the row and never shown once for the group', () => {
+  const canteen = entry('VA', { status: 'certified-section', tags: 'Chicken thigh curry', warning: 'Only these 3 meals are halal. Other dishes are not.' });
+  assert.deepEqual(rowParts(canteen).warnings, ['Only these 3 meals are halal. Other dishes are not.']);
+  const twin = entry('HH', { status: 'certified-section', tags: 'Chicken thigh curry', warning: 'Only these 3 meals are halal. Other dishes are not.' });
+  assert.equal(sharedFacts([canteen, twin]).some((f) => f.key === 'warning'), false);
+});
+
 test('a key with no place on screen fails loudly', () => {
   assert.throws(() => rowParts(entry('X', { rating: '5' })), /No place to show "rating"/);
 });

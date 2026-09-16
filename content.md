@@ -181,72 +181,77 @@ Hours change often, so they are not listed.
 
 ### The Forest — VA Student Canteen
 - where: G/F, VA Student Canteen
-- status: certified
+- status: certified-section
 - price: ≈HK$50
 - tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
+- warning: Only these 3 meals are halal. Other dishes are not.
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/va-student-canteen/
-
-### The Forest — Hung Hom Bay Campus
-- where: Hung Hom Bay Campus canteen
-- status: certified
-- price: ≈HK$50
-- tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
-- link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
 
 ### Pacific Coffee
 - where: X Cafe, X Core
-- status: certified-section
-- tags: Pre-packed sandwiches · Subject to stock
+- status: check-packaging
+- tags: Some items halal certified · Check before buying
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/x-cafe/
 
 ### Fresh Up vending machine
 - where: VA210
 - status: check-packaging
-- tags: Snacks
+- tags: Halal snacks · Halal logo on machine
+- TODO: confirm the machine's name (Fresh Up or Freshop)
 
 ### 7-Eleven
 - where: Campus-wide
 - status: check-packaging
-- tags: Garden sandwich bread certified
+- tags: Halal items available · Garden sandwich bread certified
 - note: Range changes. Check each pack for a halal logo.
 - link: https://www.polyu.edu.hk/fo/visitors/campus-wide-facilities/
 - TODO: list the specific certified instant noodles, juices and snacks if anyone verifies them
 
 ## Halls
 
-### Vending machine
+### Hung Hom Halls Canteen
+- where: Hung Hom Halls
+- status: certified-section
+- price: ≈HK$50
+- tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
+- warning: Only these 3 meals are halal. Other dishes are not.
+- link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
+
+### Hung Hom Halls vending machines
+- where: Hung Hom Halls
+- status: check-packaging
+- tags: One machine has all-halal meals · Check before buying
+- TODO: which machine it is, and whether its meals carry a halal certificate
+
+### Homantin Halls vending machine
 - where: Homantin Halls, G/F canteen
 - status: check-packaging
 - tags: Frozen meals
 - TODO: confirm the machine's brand name
 
-### Hung Hom Halls canteen
-- where: Hung Hom Halls
-- TODO: what is halal there, which counter, and the certification status
-
 ## Delivery
 
 > **Not certified.** Community-known home kitchens. Not checked by MUSA. Use your own judgement.
 
-### Pakistani Halal Food
+### Halal Food Delivery Hong Kong
 - status: unverified
 - price: ≈HK$40 a meal
 - sells: South Asian meals
-- link: https://chat.whatsapp.com/LWmReNeQYwHFVJJMLz2yZ9
+- link: https://chat.whatsapp.com/FbKoipG7m17GC9HOghzt2C
 - TODO: delivery area
 
-### Bangladeshi Halal Food (Ruby Foods)
+### Bangladeshi Halal Food
 - status: unverified
 - price: ≈HK$40 a meal
 - sells: South Asian meals
 - link: https://chat.whatsapp.com/LcFJXcxJQ3jE4zf7vVgqMd
 - TODO: delivery area
 
-### Halal Food Delivery HK (Maryam Aunty)
+### Pakistani Halal Food
 - status: unverified
 - price: ≈HK$40 a meal
 - sells: South Asian meals
-- link: https://chat.whatsapp.com/FbKoipG7m17GC9HOghzt2C
+- link: https://chat.whatsapp.com/LWmReNeQYwHFVJJMLz2yZ9
 - TODO: delivery area
 
 ## More in Hong Kong

@@ -452,6 +452,19 @@ main {
   overflow-wrap: anywhere;
 }
 
+/* A caveat on the row itself, in the warning colours: visible without tapping. */
+.row-warning {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--warn-line);
+  border-radius: calc(var(--radius-control) - 4px);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 .row-summary {
   color: var(--muted);
   font-size: 0.9375rem;

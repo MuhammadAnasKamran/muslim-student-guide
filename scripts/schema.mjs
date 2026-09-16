@@ -13,6 +13,7 @@ export const ENTRY_KEYS = [
   'jummah-note',
   'prayers',
   'tags',
+  'warning',
   'floors',
   'feature',
   'where',

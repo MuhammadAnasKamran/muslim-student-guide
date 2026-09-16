@@ -122,6 +122,8 @@ The logic lives in `src/guide.js`.
     value holds several chips separated by ` · `, so facts read as tags, not sentences;
   - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`
     and `price`.
+- `warning` is a caveat that must be read before acting ("Only these 3 meals are halal.
+  Other dishes are not."). It shows on the row in amber, never folded away, never shared.
 - Tapping a row shows its other fields, its link, and a Copy address button when there is
   an address but no link. A row with nothing more to show does not open.
 - An entry made only of `note` and `link` is an always-open card: tips, apps, lists.

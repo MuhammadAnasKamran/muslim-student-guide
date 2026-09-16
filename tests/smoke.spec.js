@@ -104,6 +104,10 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
         }, expected);
         if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row or above its group`);
       }
+      if (fields.warning) {
+        const note = card.locator('.row-head .row-warning', { hasText: fields.warning });
+        if (!(await note.isVisible())) problems.push(`${entry.name}: warning "${fields.warning}" hidden`);
+      }
       if (fields.jummah) {
         const chip = card.locator('.row-head .chip', { hasText: fields.jummah === 'yes' ? /^Jummah$/ : /^No Jummah$/ });
         if (!(await chip.isVisible())) problems.push(`${entry.name}: Jummah chip hidden`);

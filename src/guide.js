@@ -22,7 +22,9 @@ export const SUMMARY_KEYS = ['tag', 'location', 'where', 'walk', 'district', 'wh
 export const CHIP_KEYS = ['jummah', 'prayers', 'tags', 'perk', 'delivery'];
 
 // Rendered in their own way: the status badge and the link button.
-export const SPECIAL_KEYS = ['status', 'link', 'link-label'];
+// `warning` is a caveat that must be read before acting, like "only these meals
+// are halal": it shows on the row in amber and is never folded away.
+export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning'];
 
 // Everything else is a labelled fact inside the opened row. A key with no home
 // in any of these lists fails loudly when rendered.
@@ -44,7 +46,7 @@ const INFO_KEYS = ['note', 'link', 'link-label'];
 
 // Chips belong to their own row; a status shared by every row in a group is
 // shown once above them instead.
-const NEVER_SHARED = new Set(['link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery']);
+const NEVER_SHARED = new Set(['link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
 
 // A `tags` value is several chips: "South Asian meals · Several options daily".
 export function splitTags(value) {
@@ -104,6 +106,7 @@ export function rowParts(entry, shared = []) {
   return {
     status: hidden.has('status') ? null : statusOf(entry),
     chips,
+    warnings: fields.filter((f) => f.key === 'warning').map((f) => f.value),
     summary,
     facts,
     link,
