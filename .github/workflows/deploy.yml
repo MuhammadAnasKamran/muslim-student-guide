@@ -44,10 +44,7 @@ jobs:
         run: npx playwright test
 
       - name: Assemble the site
-        run: |
-          mkdir -p _site
-          cp -R src/. _site/
-          cp content.json _site/content.json
+        run: node scripts/assemble.mjs _site
 
       - uses: actions/upload-pages-artifact@v3
         with:
