@@ -70,6 +70,10 @@ test('every entry in content.json is on its screen with its name, facts and link
         if (key === 'status' || key === 'jummah') continue;
         if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
+        } else if (key === 'tags') {
+          for (const tag of value.split(' · ')) {
+            if (!text.includes(clean(tag))) problems.push(`${entry.name}: tag "${tag}" not on screen`);
+          }
         } else if (!text.includes(clean(value))) {
           problems.push(`${entry.name}: ${key} "${value}" not on screen`);
         }
@@ -93,9 +97,12 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
       const card = view.locator(`[data-entry-id="${entry.id}"]`);
       const expected = fields.status ? STATUS_LABELS[fields.status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
       if (expected) {
-        const badge = card.locator('.row-head .status');
-        if (!(await badge.isVisible())) problems.push(`${entry.name}: status hidden`);
-        else if (clean(await badge.textContent()) !== expected) problems.push(`${entry.name}: status should read "${expected}"`);
+        // Visible on the row, or once above a group where every row shares it.
+        const shown = await card.evaluate((el, label) => {
+          const read = (node) => node && node.checkVisibility() && node.textContent.replace('Halal status: ', '').trim() === label;
+          return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status'));
+        }, expected);
+        if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row or above its group`);
       }
       if (fields.jummah) {
         const chip = card.locator('.row-head .chip', { hasText: fields.jummah === 'yes' ? /^Jummah$/ : /^No Jummah$/ });
@@ -108,6 +115,23 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
     }
   }
   expect(problems).toEqual([]);
+});
+
+test('prayer times, access limits and shared facts show without tapping', async ({ page }) => {
+  await page.goto('/#/prayer-facilities');
+  const view = screenView(page, 'prayer-facilities');
+  await expect(view.locator('.chip', { hasText: 'Daily prayers + Jummah' })).toBeVisible();
+  await expect(view.locator('.chip', { hasText: /^Daily prayers$/ })).toBeVisible();
+  await expect(view.locator('.shared .chip', { hasText: 'Residents only' })).toBeVisible();
+  await expect(view.locator('.shared .chip', { hasText: 'Student card entry' })).toBeVisible();
+});
+
+test('map links carry a pin icon drawn in the page', async ({ page }) => {
+  await page.goto('/#/halal-groceries');
+  const mapLink = screenView(page, 'halal-groceries').locator('a[href*="maps.app.goo.gl"]').first();
+  await expect(mapLink.locator('svg.link-icon')).toHaveCount(1);
+  const external = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).host).filter((h) => h !== location.host));
+  expect(external, 'the page must not load anything from a third party').toEqual([]);
 });
 
 test('tapping a row opens it, and Back closes it, then returns home', async ({ page }) => {

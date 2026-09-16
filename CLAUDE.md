@@ -118,14 +118,18 @@ The logic lives in `src/guide.js`.
 - Each `##` subsection is a heading on that screen.
 - Each `###` entry is a row. Without tapping, a row shows:
   - the name and the halal status;
-  - `jummah`, `perk` and `delivery` as highlighted chips;
+  - `jummah`, `prayers`, `tags`, `perk` and `delivery` as highlighted chips. A `tags`
+    value holds several chips separated by ` · `, so facts read as tags, not sentences;
   - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`
     and `price`.
 - Tapping a row shows its other fields, its link, and a Copy address button when there is
   an address but no link. A row with nothing more to show does not open.
 - An entry made only of `note` and `link` is an always-open card: tips, apps, lists.
 - When every row under a heading has the same value for a field, that value shows once
-  above the rows instead of on each one.
+  above the rows as chips instead of on each one. This includes `status`: where a whole
+  group shares one, the badge sits above the group, still visible without tapping.
+- Map links carry a pin icon drawn in the page. Never load map images from a third party,
+  and never build a map URL that isn't in `content.md`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
 
 ---
@@ -171,10 +175,10 @@ tests/
 - Prayer comes before food. It's what a new student can't find by searching online.
 - Status shown as a word plus colour, never colour alone — for colourblind readers and grayscale printing.
 - Minimum 48px tap targets. People tap these while walking.
-- No modals or carousels. Rows may open on tap, but a closed row must always show the name,
-  the halal status word and where it is. Halal status, Jummah, access limits and warnings are
-  highlighted and never folded away.
-- Short, plain words. Say a fact once, as briefly as it stays exact.
+- No modals or carousels. Rows may open on tap, but the name, where it is, and the halal
+  status word must be visible without tapping — on the row, or once above a group where every
+  row shares it. Halal status, prayer times, access limits and warnings are never folded away.
+- Short, plain words, as tags rather than sentences. Say a fact once, as briefly as it stays exact.
 - Dark mode via `prefers-color-scheme`, no toggle. Recheck badge contrast in dark mode rather than inverting.
 - Respect `prefers-reduced-motion`. Visible focus rings. WCAG AA contrast throughout.
 - System font stack. No webfonts, no Google Fonts.

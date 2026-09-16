@@ -19,8 +19,10 @@ test('rule 3: no runtime dependencies, dev dependencies pinned exactly', () => {
 });
 
 test('rule 4: no CDN or external resources in the site', () => {
+  // The SVG namespace is an identifier createElementNS needs, never a request.
+  const SVG_NS = 'http://www.w3.org/2000/svg';
   for (const [name, text] of srcFiles) {
-    assert.doesNotMatch(text, /https?:\/\//, `${name} references an external URL`);
+    assert.doesNotMatch(text.split(SVG_NS).join(''), /https?:\/\//, `${name} references an external URL`);
   }
 });
 

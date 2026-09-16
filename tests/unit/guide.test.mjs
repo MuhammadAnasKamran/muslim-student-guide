@@ -30,9 +30,29 @@ test('facts identical on every row are shown once, highlights never are', () => 
     { key: 'arrangement', value: 'Split' },
   ]);
 
+  // A status shared by every row in a group moves above it; links never do.
   const k1 = entry('K1', { status: 'unverified', price: 'HK$40', link: 'https://a.example' });
   const k2 = entry('K2', { status: 'unverified', price: 'HK$40', link: 'https://a.example' });
-  assert.deepEqual(sharedFacts([k1, k2]), [{ key: 'price', value: 'HK$40' }]);
+  assert.deepEqual(sharedFacts([k1, k2]), [
+    { key: 'status', value: 'unverified' },
+    { key: 'price', value: 'HK$40' },
+  ]);
+  // Chips belong to their own row, never to the group.
+  const t1 = entry('T1', { tags: 'South Asian meals', perk: 'Student discount' });
+  const t2 = entry('T2', { tags: 'South Asian meals', perk: 'Student discount' });
+  assert.deepEqual(sharedFacts([t1, t2]), []);
+});
+
+test('a status shown above its group is left off the rows', () => {
+  const k = entry('K', { status: 'unverified', price: 'HK$40' });
+  assert.equal(rowParts(k).status.label, 'Unverified');
+  assert.equal(rowParts(k, [{ key: 'status', value: 'unverified' }]).status, null);
+});
+
+test('tags become one chip each, and prayers is a chip of its own', () => {
+  const parts = rowParts(entry('Z', { prayers: 'Daily prayers + Jummah', tags: 'South Asian meals · Several options daily' }));
+  assert.deepEqual(parts.chips.map((c) => c.text), ['Daily prayers + Jummah', 'South Asian meals', 'Several options daily']);
+  assert.equal(parts.expandable, false, 'chips alone do not make a row open');
 });
 
 test('sharing needs two or more rows, and info cards do not count', () => {

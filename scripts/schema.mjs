@@ -11,6 +11,8 @@ export const ENTRY_KEYS = [
   'wudu',
   'jummah',
   'jummah-note',
+  'prayers',
+  'tags',
   'floors',
   'feature',
   'where',

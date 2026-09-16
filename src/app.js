@@ -14,6 +14,7 @@ import {
   rowParts,
   searchText,
   sharedFacts,
+  splitTags,
   statusOf,
 } from './guide.js';
 
@@ -240,7 +241,7 @@ function renderGroup(section, subsection, rows) {
       continue;
     }
     if (!isInfoCard(block) && shared.length && !sharedShown) {
-      group.append(h('p', { class: 'shared' }, h('span', { class: 'visually-hidden' }, 'All of these: '), shared.map((f) => f.value).join(' · ')));
+      group.append(renderShared(shared));
       sharedShown = true;
     }
     const node = renderEntry(block, { shared, routable: true });
@@ -274,13 +275,14 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
   if (isInfoCard(entry)) return renderInfoCard(entry, id, context);
 
   const parts = rowParts(entry, shared);
+  // Status first, then the name, then tags: the name stays easy to find on rows
+  // carrying several chips.
   const head = [
     context ? h('span', { class: 'row-context' }, context) : null,
-    parts.status || parts.chips.length
-      ? h('span', { class: 'row-badges' }, parts.status ? renderStatus(parts.status) : null, ...parts.chips.map(renderChip))
-      : null,
+    parts.status ? h('span', { class: 'row-badges' }, renderStatus(parts.status)) : null,
     h('h3', { class: 'row-name' }, entry.name),
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
+    parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
   ];
 
   if (!parts.expandable) {
@@ -309,6 +311,17 @@ function renderInfoCard(entry, id, context) {
   );
 }
 
+// Facts every row in this group shares, shown once above them as chips. A status
+// they all share keeps its badge, so the halal word is still on screen.
+function renderShared(shared) {
+  const node = h('p', { class: 'shared' }, h('span', { class: 'visually-hidden' }, 'All of these: '));
+  for (const { key, value } of shared) {
+    if (key === 'status') node.append(renderStatus({ key: value, ...STATUS_LABELS[value] }));
+    else for (const text of splitTags(value)) node.append(renderChip({ text, muted: false }));
+  }
+  return node;
+}
+
 function renderStatus(status) {
   return h('span', { class: `status status-${status.key}` }, h('span', { class: 'visually-hidden' }, 'Halal status: '), status.label);
 }
@@ -318,13 +331,36 @@ function renderChip(chip) {
 }
 
 function renderLink({ href, text, host }) {
+  const isMap = host === 'maps.app.goo.gl' || host.endsWith('google.com');
   return h(
     'a',
     { class: 'entry-link', href, rel: 'noopener', target: '_blank' },
-    h('span', { class: 'link-text' }, text),
-    h('span', { class: 'link-host' }, host),
+    isMap ? mapPin() : null,
+    h('span', { class: 'link-lines' }, h('span', { class: 'link-text' }, text), h('span', { class: 'link-host' }, host)),
     h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
   );
+}
+
+// Drawn here rather than loaded from a map service: no third-party requests, and
+// no URL that isn't in content.md (CLAUDE.md rules 1 and 4).
+function mapPin() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'link-icon');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  const pin = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  pin.setAttribute('d', 'M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Z');
+  pin.setAttribute('fill', 'none');
+  pin.setAttribute('stroke', 'currentColor');
+  pin.setAttribute('stroke-width', '2');
+  pin.setAttribute('stroke-linejoin', 'round');
+  const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  dot.setAttribute('cx', '12');
+  dot.setAttribute('cy', '9');
+  dot.setAttribute('r', '2.5');
+  dot.setAttribute('fill', 'currentColor');
+  svg.append(pin, dot);
+  return svg;
 }
 
 function renderCopyButton(address) {

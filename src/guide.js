@@ -18,7 +18,8 @@ export const STATUS_NOT_RECORDED = { label: 'Status not recorded', meaning: 'MUS
 export const SUMMARY_KEYS = ['tag', 'location', 'where', 'walk', 'district', 'what', 'sells', 'price'];
 
 // Highlighted tags, visible without tapping.
-export const CHIP_KEYS = ['jummah', 'perk', 'delivery'];
+// `tags` holds several chips separated by ' · '.
+export const CHIP_KEYS = ['jummah', 'prayers', 'tags', 'perk', 'delivery'];
 
 // Rendered in their own way: the status badge and the link button.
 export const SPECIAL_KEYS = ['status', 'link', 'link-label'];
@@ -41,8 +42,14 @@ export const FIELD_LABELS = {
 // An entry made only of these renders as an always-open card (tips, apps, lists).
 const INFO_KEYS = ['note', 'link', 'link-label'];
 
-// Highlights stay on every row, so they are never shown once above a group.
-const NEVER_SHARED = new Set([...SPECIAL_KEYS, 'jummah', 'jummah-note']);
+// Chips belong to their own row; a status shared by every row in a group is
+// shown once above them instead.
+const NEVER_SHARED = new Set(['link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery']);
+
+// A `tags` value is several chips: "South Asian meals · Several options daily".
+export function splitTags(value) {
+  return value.split(' · ').map((part) => part.trim()).filter(Boolean);
+}
 
 export function fieldMap(entry) {
   return Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
@@ -85,16 +92,17 @@ export function rowParts(entry, shared = []) {
   const summary = SUMMARY_KEYS.flatMap((key) => fields.filter((f) => f.key === key).map((f) => f.value)).join(' · ');
   const chips = fields
     .filter((f) => CHIP_KEYS.includes(f.key))
-    .map(({ key, value }) =>
-      key === 'jummah' ? { key, text: value === 'yes' ? 'Jummah' : 'No Jummah', muted: value !== 'yes' } : { key, text: value, muted: false },
-    );
+    .flatMap(({ key, value }) => {
+      if (key === 'jummah') return [{ key, text: value === 'yes' ? 'Jummah' : 'No Jummah', muted: value !== 'yes' }];
+      return splitTags(value).map((text) => ({ key, text, muted: false }));
+    });
   const facts = fields.filter((f) => FIELD_LABELS[f.key]).map((f) => ({ key: f.key, label: FIELD_LABELS[f.key], value: f.value }));
   const map = fieldMap(entry);
   const link = map.link ? { href: map.link, ...linkText(map.link, map['link-label']) } : null;
   const copyAddress = !link && map.address && !hidden.has('address') ? map.address : null;
 
   return {
-    status: statusOf(entry),
+    status: hidden.has('status') ? null : statusOf(entry),
     chips,
     summary,
     facts,
