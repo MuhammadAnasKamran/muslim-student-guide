@@ -119,6 +119,44 @@ test('patterned surfaces keep their text readable', () => {
   }
 });
 
+// Glass panes sit over the patterned page, so text on them is measured through
+// both layers. Muted grey is only strong enough on a pane, never on the page.
+test('text on glass panes meets AA, and nothing muted sits on the page', () => {
+  const fills = [...css.matchAll(/--glass-fill:\s*rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)/g)];
+  const strengths = [...css.matchAll(/--pattern-strength:\s*([\d.]+)/g)].map((m) => Number(m[1]));
+  assert.equal(fills.length, 2);
+  assert.equal(strengths.length, 2);
+  const rgb = (hex) => hex.slice(1).match(/../g).map((c) => parseInt(c, 16));
+  const over = (fg, bg, alpha) => fg.map((v, i) => v * alpha + bg[i] * (1 - alpha));
+
+  for (const [index, [mode, palette]] of [['light', light], ['dark', dark]].entries()) {
+    const ground = over(rgb(palette.accent), rgb(palette.bg), strengths[index]);
+    const fill = fills[index];
+    const pane = over([Number(fill[1]), Number(fill[2]), Number(fill[3])], ground, Number(fill[4]));
+    for (const [what, colour, backdrop] of [
+      ['muted text on a pane', palette.muted, pane],
+      ['body text on a pane', palette.ink, pane],
+      ['link text on a pane', palette.accent, pane],
+      ['body text on the page', palette.ink, ground],
+      ['headings on the page', palette.accent, ground],
+    ]) {
+      const value = contrastRgb(rgb(colour), backdrop);
+      assert.ok(value >= 4.5, `${mode}: ${what} is ${value.toFixed(2)}, needs 4.5`);
+    }
+  }
+
+  // Text drawn straight on the patterned page must not use the muted grey.
+  const ruleFor = (selector) => {
+    const at = css.indexOf(selector);
+    assert.ok(at >= 0, selector + ' is missing from the stylesheet');
+    return css.slice(at, css.indexOf('}', at));
+  };
+  for (const selector of ['.intro {', '.result-count {', '.site-footer {', '.home-subtitle {', '.loading,']) {
+    assert.doesNotMatch(ruleFor(selector), /color:\s*var\(--muted\)/, selector + ' sits on the page, so it cannot use --muted');
+  }
+});
+
+
 test('dark mode redefines its colours rather than reusing light ones', () => {
   for (const name of ['ink', 'bg', 'surface', 'accent', 'accent-soft', 'warn-bg', 'certified-bg', 'amber-bg', 'grey-bg']) {
     assert.notEqual(dark[name], light[name], `--${name}`);
