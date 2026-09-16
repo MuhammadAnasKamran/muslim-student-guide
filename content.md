@@ -219,10 +219,10 @@ Hours change often, so they are not listed.
 ### Homantin Halls vending machine
 - where: Homantin Halls, G/F canteen
 - status: check-packaging
-- tags: Frozen halal meals · Check before buying
+- tags: Frozen halal meals
 - warning: The Homantin canteen itself has no halal food.
 
-## Delivery
+## WhatsApp Groups
 
 > **Not certified.** Community-known home kitchens. Not checked by MUSA. Use your own judgement.
 
