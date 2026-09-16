@@ -66,16 +66,26 @@ export function statusOf(entry) {
   return entry.statusMissing ? { key: 'none', ...STATUS_NOT_RECORDED } : null;
 }
 
-// Screens whose groups fold into tappable blocks, matched on the screen title so a
+// Screens whose groups each open as their own page, matched on the screen title so a
 // rename that keeps the word keeps the behaviour. Only long lists need it.
-const FOLDING_SCREENS = [/\bfood\b/i];
+const GROUP_PAGE_SCREENS = [/\bfood\b/i];
 
-export function foldsGroups(section) {
-  return section.subsections.length > 1 && FOLDING_SCREENS.some((pattern) => pattern.test(section.title));
+export function hasGroupPages(section) {
+  return section.subsections.length > 1 && GROUP_PAGE_SCREENS.some((pattern) => pattern.test(section.title));
 }
 
-// What a closed block shows about the rows inside: how many there are, and how many
-// carry each halal status, so every status is still readable without opening it.
+// A group page's screen id sits under its section's: "halal-food-near-you/campus".
+export function groupScreenId(section, subsection) {
+  return `${section.id}/${subsection.id}`;
+}
+
+// The screen Back leads to: a group page's section, or home (null).
+export function parentScreen(screenId) {
+  return screenId?.includes('/') ? screenId.slice(0, screenId.indexOf('/')) : null;
+}
+
+// What a group's card shows about the rows on its page: how many there are, and how
+// many carry each halal status, so every status is readable before opening it.
 export function groupSummary(entries) {
   const counts = new Map();
   for (const entry of entries) {
@@ -175,12 +185,15 @@ export function entryContexts(doc) {
 }
 
 // Page addresses: #/ is home, #/<screen> a screen, #/<screen>/<entry> an opened row.
-export function parseRoute(hash) {
+// "#/section/entry", or "#/section/group/entry" when isScreen says "section/group" is
+// a group page.
+export function parseRoute(hash, isScreen = () => false) {
   const path = (hash ?? '').replace(/^#/, '');
   if (path === '' || path === '/') return { screen: null, entry: null };
   if (!path.startsWith('/')) return null;
-  const [screen = null, entry = null] = path.slice(1).split('/').filter(Boolean);
-  return { screen, entry };
+  const parts = path.slice(1).split('/').filter(Boolean);
+  const depth = parts.length > 1 && isScreen(`${parts[0]}/${parts[1]}`) ? 2 : 1;
+  return { screen: parts.slice(0, depth).join('/'), entry: parts[depth] ?? null };
 }
 
 export function routeFor(screen, entry) {

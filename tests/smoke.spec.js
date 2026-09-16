@@ -2,23 +2,27 @@
 
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { STATUS_LABELS, STATUS_NOT_RECORDED } from '../src/guide.js';
+import { STATUS_LABELS, STATUS_NOT_RECORDED, groupScreenId, hasGroupPages } from '../src/guide.js';
 
+// Every screen the app renders: one per section, and on sections with group pages,
+// one per group as well. `id` is the screen's address and data-screen value.
 function load() {
   const doc = JSON.parse(readFileSync(new URL('../content.json', import.meta.url), 'utf8'));
-  const screens = doc.sections
-    .filter((s) => s.published)
-    .map((section) => {
-      const blocks = [...section.blocks, ...section.subsections.flatMap((sub) => sub.blocks)];
-      return {
-        section,
-        entries: blocks.filter((b) => b.type === 'entry'),
-        quotes: blocks.filter((b) => b.kind === 'blockquote'),
-      };
-    });
+  const screen = (id, title, blockLists) => {
+    const blocks = blockLists.flat();
+    return { id, title, entries: blocks.filter((b) => b.type === 'entry'), quotes: blocks.filter((b) => b.kind === 'blockquote') };
+  };
+  const sections = doc.sections.filter((s) => s.published);
+  const screens = sections.flatMap((section) => {
+    if (!hasGroupPages(section)) return [screen(section.id, section.title, [section.blocks, ...section.subsections.map((sub) => sub.blocks)])];
+    return [
+      screen(section.id, section.title, [section.blocks]),
+      ...section.subsections.map((sub) => ({ ...screen(groupScreenId(section, sub), sub.title, [sub.blocks]), parent: section.id })),
+    ];
+  });
   const entries = screens.flatMap((s) => s.entries);
   const links = new Set(entries.flatMap((e) => e.fields.filter((f) => f.key === 'link').map((f) => f.value)));
-  return { doc, screens, entries, links };
+  return { doc, sections, screens, entries, links };
 }
 
 const screenView = (page, id) => page.locator(`[data-screen="${id}"]`);
@@ -40,11 +44,11 @@ test('home loads with a menu in content.md order and no console errors', async (
     if (response.status() >= 400) errors.push(`HTTP ${response.status()}: ${response.url()}`);
   });
 
-  const { doc, screens } = load();
+  const { doc, sections } = load();
   await openHome(page);
   await expect(page).toHaveTitle(doc.meta.title);
-  await expect(page.locator('.menu-link .menu-title')).toHaveText(screens.map((s) => s.section.title));
-  expect(screens[0].section.title, 'prayer comes before food').toMatch(/prayer/i);
+  await expect(page.locator('.menu-link .menu-title')).toHaveText(sections.map((s) => s.title));
+  expect(sections[0].title, 'prayer comes before food').toMatch(/prayer/i);
   expect(errors).toEqual([]);
 });
 
@@ -54,14 +58,14 @@ test('every entry in content.json is on its screen with its name, facts and link
   await expect(page.locator('[data-entry-id]')).toHaveCount(entries.length);
 
   const problems = [];
-  for (const { section, entries: list } of screens) {
-    const view = screenView(page, section.id);
+  for (const { id, title, entries: list } of screens) {
+    const view = screenView(page, id);
     const text = clean(await view.textContent());
     const hrefs = await view.locator('a[href]').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
     for (const entry of list) {
       const card = view.locator(`[data-entry-id="${entry.id}"]`);
       if ((await card.count()) !== 1) {
-        problems.push(`${entry.name} is not on ${section.title}`);
+        problems.push(`${entry.name} is not on ${title}`);
         continue;
       }
       const name = await card.locator('h3').textContent();
@@ -86,14 +90,13 @@ test('every entry in content.json is on its screen with its name, facts and link
 test('halal status, Jummah and warnings are visible without tapping anything', async ({ page }) => {
   const { screens } = load();
   const problems = [];
-  for (const { section, entries, quotes } of screens) {
+  for (const { id, title, entries, quotes } of screens) {
     await page.goto('about:blank');
-    await page.goto(`/#/${section.id}`);
-    const view = screenView(page, section.id);
+    await page.goto(`/#/${id}`);
+    const view = screenView(page, id);
     await expect(view).toBeVisible();
 
-    // With every block still closed: statuses on the row, above the group, or counted on
-    // the closed block's header; and every warning note readable.
+    // Statuses on the row or once above the group; every warning note readable.
     for (const entry of entries) {
       const fields = Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
       const expected = fields.status ? STATUS_LABELS[fields.status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
@@ -101,19 +104,16 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
       const shown = await view.locator(`[data-entry-id="${entry.id}"]`).evaluate((el, label) => {
         const read = (node) =>
           Boolean(node) && node.checkVisibility() && node.textContent.replace('Halal status: ', '').replace(/,\s*\d+$/, '').trim() === label;
-        const fold = el.closest('details.group-fold');
-        if (fold && !fold.open) return [...fold.querySelector(':scope > summary').querySelectorAll('.status')].some(read);
         return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status'));
       }, expected);
-      if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row, above its group, or on its closed block`);
+      if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row or above its group`);
     }
     for (const quote of quotes) {
       const words = quote.runs.map((r) => r.text).join('').slice(0, 30);
-      if (!(await view.locator('.alert', { hasText: words }).first().isVisible())) problems.push(`${section.title}: warning "${words}" hidden`);
+      if (!(await view.locator('.alert', { hasText: words }).first().isVisible())) problems.push(`${title}: warning "${words}" hidden`);
     }
 
-    // Once a block is opened, row-level warnings and chips must show without opening the row.
-    await view.locator('details.group-fold').evaluateAll((folds) => folds.forEach((fold) => (fold.open = true)));
+    // Row-level warnings and chips show without opening the row.
     for (const entry of entries) {
       const fields = Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
       const card = view.locator(`[data-entry-id="${entry.id}"]`);
@@ -129,27 +129,81 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
   expect(problems).toEqual([]);
 });
 
-test('Halal Food blocks start closed, summarise what is inside, and open on tap', async ({ page }) => {
-  await page.goto('/#/halal-food-near-you');
-  const view = screenView(page, 'halal-food-near-you');
-  const folds = view.locator('details.group-fold');
-  expect(await folds.count()).toBeGreaterThan(1);
-  for (const fold of await folds.all()) {
-    await expect(fold).not.toHaveAttribute('open');
-    await expect(fold.locator(':scope > summary .group-count')).toBeVisible();
+test('each Halal Food group card shows its count, every status and its warnings', async ({ page }) => {
+  const { screens } = load();
+  const groups = screens.filter((s) => s.parent);
+  expect(groups.length, 'the food screen has group pages').toBeGreaterThan(1);
+
+  const problems = [];
+  for (const group of groups) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${group.parent}`);
+    const card = screenView(page, group.parent).locator(`a.group-link[href="#/${group.id}"]`);
+    if (!(await card.isVisible())) {
+      problems.push(`no visible card for ${group.title}`);
+      continue;
+    }
+    const text = clean(await card.textContent());
+    const n = group.entries.length;
+    if (!text.includes(`${n} ${n === 1 ? 'listing' : 'listings'}`)) problems.push(`${group.title}: count missing`);
+    for (const entry of group.entries) {
+      const status = entry.fields.find((f) => f.key === 'status')?.value;
+      const label = status ? STATUS_LABELS[status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
+      if (label && !text.includes(label)) problems.push(`${group.title}: "${label}" (${entry.name}) missing from its card`);
+    }
+    for (const quote of group.quotes) {
+      const words = quote.runs.map((r) => r.text).join('').slice(0, 30);
+      if (!text.includes(clean(words))) problems.push(`${group.title}: warning "${words}" missing from its card`);
+    }
   }
+  expect(problems).toEqual([]);
+});
 
-  const first = folds.first();
-  await expect(first.locator('.row, .info-card').first()).toBeHidden();
-  await first.locator(':scope > summary').click();
-  await expect(first).toHaveAttribute('open', '');
-  await expect(first.locator('.row, .info-card').first()).toBeVisible();
+test('Halal Food drills down like Prayer Facilities: group page, open a row, Back up each level', async ({ page }) => {
+  const { screens } = load();
+  const group = screens.find((s) => s.parent && s.entries.some((e) => e.fields.some((f) => f.key === 'link')));
+  const parent = screens.find((s) => s.id === group.parent);
+  const entry = group.entries.find((e) => e.fields.some((f) => f.key === 'link'));
+  const link = entry.fields.find((f) => f.key === 'link').value;
+  await openHome(page);
 
-  // A link straight to a row inside a closed block opens the block as well.
-  const rowId = await view.locator('details.group-fold details.row').last().getAttribute('data-entry-id');
+  await page.locator('.menu-link', { hasText: parent.title }).click();
+  await expect(page).toHaveURL(new RegExp(`#/${parent.id}$`));
+  await expect(screenView(page, parent.id).locator('.row')).toHaveCount(0);
+
+  await screenView(page, parent.id).locator(`a.group-link[href="#/${group.id}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`#/${group.id}$`));
+  await expect(page.locator('#screen-title')).toHaveText(group.title);
+  const view = screenView(page, group.id);
+  await expect(view).toBeVisible();
+  await expect(screenView(page, parent.id)).toBeHidden();
+
+  const row = view.locator(`details.row[data-entry-id="${entry.id}"]`);
+  await row.locator('summary').click();
+  await expect(row).toHaveAttribute('open', '');
+  await expect(page).toHaveURL(new RegExp(`#/${group.id}/${entry.id}$`));
+  await expect(row.locator(`a[href="${link}"]`)).toBeVisible();
+
+  await page.goBack();
+  await expect(row).not.toHaveAttribute('open');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`#/${parent.id}$`));
+  await expect(page.locator('#screen-title')).toHaveText(parent.title);
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.locator('.menu')).toBeVisible();
+
+  // Opened straight from an address, Back still goes one level up, not home.
   await page.goto('about:blank');
-  await page.goto(`/#/halal-food-near-you/${rowId}`);
-  await expect(view.locator(`details.row[data-entry-id="${rowId}"]`)).toBeVisible();
+  await page.goto(`/#/${group.id}/${entry.id}`);
+  await expect(row).toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.locator('#screen-title')).toHaveText(parent.title);
+
+  // An old address to the row on the section screen lands on its group page.
+  await page.goto('about:blank');
+  await page.goto(`/#/${parent.id}/${entry.id}`);
+  await expect(page).toHaveURL(new RegExp(`#/${group.id}/${entry.id}$`));
+  await expect(row).toHaveAttribute('open', '');
 });
 
 test('prayer times, access limits and shared facts show without tapping', async ({ page }) => {
@@ -202,7 +256,7 @@ test('pressing a card keeps its rounded corners, and buttons match the card shap
 
 test('tapping a row opens it, and Back closes it, then returns home', async ({ page }) => {
   const { screens } = load();
-  const { id: screenId, title } = screens[0].section;
+  const { id: screenId, title } = screens[0];
   await openHome(page);
 
   await page.locator('.menu-link').first().click();
@@ -281,11 +335,11 @@ test('no tap target is smaller than 44px on any screen', async ({ page }) => {
   await expect(page.locator('.clear-button')).toBeVisible();
   const small = await measure();
 
-  for (const { section } of screens) {
+  for (const { id, title } of screens) {
     await page.goto('about:blank');
-    await page.goto(`/#/${section.id}`);
-    await screenView(page, section.id).locator('details').evaluateAll((all) => all.forEach((d) => d.setAttribute('open', '')));
-    small.push(...(await measure()).map((box) => ({ ...box, screen: section.title })));
+    await page.goto(`/#/${id}`);
+    await screenView(page, id).locator('details').evaluateAll((all) => all.forEach((d) => d.setAttribute('open', '')));
+    small.push(...(await measure()).map((box) => ({ ...box, screen: title })));
   }
   expect(small).toEqual([]);
 });
@@ -296,13 +350,13 @@ test.describe('copy address', () => {
   test('copies the exact address from content.json', async ({ page }) => {
     const { screens } = load();
     const withCopy = screens
-      .flatMap(({ section, entries }) => entries.map((entry) => ({ section, entry })))
+      .flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry })))
       .find(({ entry }) => entry.fields.some((f) => f.key === 'address') && !entry.fields.some((f) => f.key === 'link'));
     test.skip(!withCopy, 'no entry has an address without a link');
 
     const address = withCopy.entry.fields.find((f) => f.key === 'address').value;
-    await page.goto(`/#/${withCopy.section.id}/${withCopy.entry.id}`);
-    const button = screenView(page, withCopy.section.id).locator(`[data-entry-id="${withCopy.entry.id}"] .copy-button`);
+    await page.goto(`/#/${withCopy.screenId}/${withCopy.entry.id}`);
+    const button = screenView(page, withCopy.screenId).locator(`[data-entry-id="${withCopy.entry.id}"] .copy-button`);
     await button.click();
     await expect(button).toHaveText('Address copied');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(address);

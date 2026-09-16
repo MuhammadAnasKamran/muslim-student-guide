@@ -4,10 +4,12 @@ import { test } from 'node:test';
 import { parseContent, toPublicJson } from '../../scripts/parse.mjs';
 import {
   entryContexts,
-  foldsGroups,
+  groupScreenId,
+  hasGroupPages,
   groupSummary,
   isInfoCard,
   menuItems,
+  parentScreen,
   parseRoute,
   routeFor,
   rowParts,
@@ -125,11 +127,11 @@ test('a closed block counts every halal status inside it', () => {
   ]);
 });
 
-test('only the food screen folds its groups', () => {
+test('only the food screen gives each group its own page', () => {
   const withGroups = (title) => ({ title, subsections: [{}, {}] });
-  assert.equal(foldsGroups(withGroups('Halal Food Near You')), true);
-  assert.equal(foldsGroups(withGroups('Prayer Facilities')), false);
-  assert.equal(foldsGroups({ title: 'Halal Food', subsections: [{}] }), false, 'a single group has nothing to fold');
+  assert.equal(hasGroupPages(withGroups('Halal Food Near You')), true);
+  assert.equal(hasGroupPages(withGroups('Prayer Facilities')), false);
+  assert.equal(hasGroupPages({ title: 'Halal Food', subsections: [{}] }), false, 'a single group needs no page of its own');
 });
 
 test('a key with no place on screen fails loudly', () => {
@@ -148,6 +150,15 @@ test('page addresses round-trip', () => {
   assert.deepEqual(parseRoute('#/halal-food'), { screen: 'halal-food', entry: null });
   assert.deepEqual(parseRoute('#/halal-food/pacific-coffee'), { screen: 'halal-food', entry: 'pacific-coffee' });
   assert.equal(parseRoute('#main'), null);
+  const isScreen = (id) => id === 'halal-food/campus';
+  assert.deepEqual(parseRoute('#/halal-food/campus', isScreen), { screen: 'halal-food/campus', entry: null });
+  assert.deepEqual(parseRoute('#/halal-food/campus/pacific-coffee', isScreen), { screen: 'halal-food/campus', entry: 'pacific-coffee' });
+  assert.deepEqual(parseRoute('#/halal-food/pacific-coffee', isScreen), { screen: 'halal-food', entry: 'pacific-coffee' });
+  assert.equal(groupScreenId({ id: 'halal-food' }, { id: 'campus' }), 'halal-food/campus');
+  assert.equal(routeFor('halal-food/campus', 'pacific-coffee'), '#/halal-food/campus/pacific-coffee');
+  assert.equal(parentScreen('halal-food/campus'), 'halal-food');
+  assert.equal(parentScreen('halal-food'), null);
+  assert.equal(parentScreen(null), null);
   assert.equal(routeFor(null), '#/');
   assert.equal(routeFor('halal-food'), '#/halal-food');
   assert.equal(routeFor('halal-food', 'pacific-coffee'), '#/halal-food/pacific-coffee');

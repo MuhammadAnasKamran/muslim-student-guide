@@ -1,16 +1,18 @@
 // Renders content.json as an app: a home menu, one screen per content.md
-// section, and rows that open on tap. Every node is built with createElement
+// section (with a page per group on long screens), and rows that open on tap. Every node is built with createElement
 // and textContent, never innerHTML (CLAUDE.md rule 5).
 
 import {
   STATUS_LABELS,
   entryContexts,
-  foldsGroups,
   formatDate,
+  groupScreenId,
   groupSummary,
+  hasGroupPages,
   isInfoCard,
   menuItems,
   normalize,
+  parentScreen,
   parseRoute,
   routeFor,
   rowParts,
@@ -31,12 +33,12 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const view = {
   meta: null,
   home: null,
-  screens: new Map(), // screen id -> { section, node, rows: Map(entry id -> <details>) }
+  screens: new Map(), // screen id -> { title, parentTitle, node, rows: Map(entry id -> <details>) }
   contexts: [],
   current: { screen: undefined, entry: null },
   entryPushed: false, // true when opening a row added a history step
-  cameFromHome: false, // true when the open screen was reached from the home menu
-  homeScroll: 0,
+  fromParent: new Set(), // screens reached by tapping in from the screen Back leads to
+  scroll: new Map(), // screen id (null for home) -> where it was scrolled when a child opened
   timer: 0,
 };
 
@@ -60,7 +62,7 @@ async function start() {
   const fragment = document.createDocumentFragment();
   fragment.append(renderHome(doc));
   for (const section of doc.sections) {
-    if (section.published) fragment.append(renderScreen(section));
+    if (section.published) fragment.append(...renderScreen(section));
   }
   app.replaceChildren(fragment);
 
@@ -222,73 +224,87 @@ function clearSearch() {
 
 // ——— Screens ———
 
+// A section's screen, plus one page per group where the section has group pages.
 function renderScreen(section) {
   const node = h('div', { class: 'view', 'data-screen': section.id, hidden: true });
   const rows = new Map();
-  const legend = renderLegend(section);
+  const legend = renderLegend(entriesIn(section.blocks, ...section.subsections.map((sub) => sub.blocks)));
   if (legend) node.append(legend);
-  if (section.blocks.length) node.append(renderGroup(section, null, rows));
-  for (const subsection of section.subsections) node.append(renderGroup(section, subsection, rows));
-  view.screens.set(section.id, { section, node, rows });
-  return node;
+  if (section.blocks.length) node.append(renderGroup(section.id, section.blocks, null, rows));
+  view.screens.set(section.id, { title: section.title, node, rows });
+
+  if (!hasGroupPages(section)) {
+    for (const subsection of section.subsections) node.append(renderGroup(section.id, subsection.blocks, subsection, rows));
+    return [node];
+  }
+
+  const pages = [];
+  const links = h('nav', { class: 'group-links', 'aria-label': section.title });
+  for (const subsection of section.subsections) {
+    const id = groupScreenId(section, subsection);
+    links.append(renderGroupLink(id, subsection));
+    const page = h('div', { class: 'view', 'data-screen': id, hidden: true });
+    const pageRows = new Map();
+    const pageLegend = renderLegend(entriesIn(subsection.blocks));
+    if (pageLegend) page.append(pageLegend);
+    page.append(renderGroup(id, subsection.blocks, null, pageRows));
+    view.screens.set(id, { title: subsection.title, parentTitle: section.title, node: page, rows: pageRows });
+    pages.push(page);
+  }
+  node.append(links);
+  return [node, ...pages];
 }
 
-function renderGroup(section, subsection, rows) {
-  const blocks = (subsection ?? section).blocks;
-  const shared = sharedFacts(blocks.filter((b) => b.type === 'entry'));
+function entriesIn(...blockLists) {
+  return blockLists.flat().filter((b) => b.type === 'entry');
+}
+
+function renderGroup(screenId, blocks, subsection, rows) {
+  const shared = sharedFacts(entriesIn(blocks));
   const group = h('section', { class: 'group' });
-  let body = group;
-  const folded = Boolean(subsection) && foldsGroups(section);
   if (subsection) {
     const id = `group-${subsection.id}`;
     group.setAttribute('aria-labelledby', id);
-    const title = h('h2', { class: 'group-title', id }, subsection.title);
-    if (folded) {
-      body = h('div', { class: 'group-body' });
-      group.append(h('details', { class: 'group-fold' }, renderFoldSummary(title, blocks), body));
-    } else {
-      group.append(title);
-    }
+    group.append(h('h2', { class: 'group-title', id }, subsection.title));
   }
 
   let sharedShown = false;
   for (const block of blocks) {
     if (block.type === 'prose') {
-      // A closed block already shows its warnings in the header.
-      if (!(folded && block.kind === 'blockquote')) body.append(renderProse(block));
+      group.append(renderProse(block));
       continue;
     }
     if (!isInfoCard(block) && shared.length && !sharedShown) {
-      body.append(renderShared(shared));
+      group.append(renderShared(shared));
       sharedShown = true;
     }
     const node = renderEntry(block, { shared, routable: true });
     if (node.tagName === 'DETAILS') {
       rows.set(block.id, node);
-      wireRow(node, section.id, block.id);
+      wireRow(node, screenId, block.id);
     }
-    body.append(node);
+    group.append(node);
   }
   return group;
 }
 
-// A closed block's header: the title, how many listings, each halal status with a
-// count, and any warning. Nothing a student needs to decide is hidden inside.
-function renderFoldSummary(title, blocks) {
-  const { total, statuses } = groupSummary(blocks.filter((b) => b.type === 'entry'));
-  const summary = h(
-    'summary',
-    { class: 'group-summary' },
-    title,
+// The card that opens a group's page: the title, how many listings, each halal status
+// with a count, and any warning. Nothing a student needs to decide waits behind the tap.
+function renderGroupLink(screenId, subsection) {
+  const { total, statuses } = groupSummary(entriesIn(subsection.blocks));
+  const link = h(
+    'a',
+    { class: 'group-link', href: routeFor(screenId) },
+    h('h2', { class: 'group-title' }, subsection.title),
     h('span', { class: 'group-count' }, `${total} ${total === 1 ? 'listing' : 'listings'}`),
   );
-  if (statuses.length) summary.append(h('span', { class: 'group-statuses' }, ...statuses.map((status) => renderStatus(status, status.count))));
-  for (const block of blocks) {
+  if (statuses.length) link.append(h('span', { class: 'group-statuses' }, ...statuses.map((status) => renderStatus(status, status.count))));
+  for (const block of subsection.blocks) {
     if (block.type === 'prose' && block.kind === 'blockquote') {
-      summary.append(h('span', { class: 'alert group-alert' }, ...renderRuns(block.runs)));
+      link.append(h('span', { class: 'alert group-alert' }, ...renderRuns(block.runs)));
     }
   }
-  return summary;
+  return link;
 }
 
 function renderProse(block) {
@@ -452,8 +468,7 @@ function renderCopyButton(address) {
   return button;
 }
 
-function renderLegend(section) {
-  const entries = [...section.blocks, ...section.subsections.flatMap((sub) => sub.blocks)].filter((b) => b.type === 'entry');
+function renderLegend(entries) {
   const used = new Map();
   for (const entry of entries) {
     const status = statusOf(entry);
@@ -497,13 +512,21 @@ function wireRow(row, screenId, entryId) {
 }
 
 function route() {
-  const parsed = parseRoute(location.hash);
+  const parsed = parseRoute(location.hash, (id) => view.screens.has(id));
   if (!parsed) return;
   let { screen, entry } = parsed;
   if (screen && !view.screens.has(screen)) {
     history.replaceState(null, '', routeFor(null));
     screen = null;
     entry = null;
+  }
+  // A row that now lives on one of this screen's group pages: go to that page.
+  if (entry && !view.screens.get(screen).rows.has(entry)) {
+    const owner = [...view.screens].find(([id, other]) => parentScreen(id) === screen && other.rows.has(entry));
+    if (owner) {
+      screen = owner[0];
+      history.replaceState(null, '', routeFor(screen, entry));
+    }
   }
 
   const first = view.current.screen === undefined;
@@ -522,8 +545,6 @@ function route() {
   if (!entry) view.entryPushed = false;
   if (entry) {
     const row = target.rows.get(entry);
-    const fold = row.closest('details.group-fold');
-    if (fold && !fold.open) fold.open = true;
     if (!row.open) {
       row.open = true;
       row.scrollIntoView({ block: 'start', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
@@ -533,10 +554,18 @@ function route() {
 
 function showScreen(screenId, first) {
   const leaving = view.current.screen;
+  let scroll = 0;
   if (!first) {
     const old = leaving ? view.screens.get(leaving) : null;
-    if (!old) view.homeScroll = window.scrollY;
-    view.cameFromHome = !old && Boolean(screenId);
+    if (screenId && parentScreen(screenId) === leaving) {
+      // Tapped in: remember where the screen behind was scrolled.
+      view.scroll.set(leaving, window.scrollY);
+      view.fromParent.add(screenId);
+    } else if (leaving && parentScreen(leaving) === screenId) {
+      scroll = view.scroll.get(screenId) ?? 0;
+    } else if (screenId) {
+      view.fromParent.delete(screenId);
+    }
     view.current = { screen: screenId, entry: null };
     if (old) for (const row of old.rows.values()) row.open = false;
     (old?.node ?? view.home.node).hidden = true;
@@ -545,17 +574,19 @@ function showScreen(screenId, first) {
   const next = screenId ? view.screens.get(screenId) : null;
   (next?.node ?? view.home.node).hidden = false;
   backButton.hidden = !next;
-  title.textContent = next ? next.section.title : view.meta.title;
-  document.title = next ? `${next.section.title} · ${view.meta.title}` : view.meta.title;
-  window.scrollTo(0, next ? 0 : view.homeScroll);
+  title.textContent = next ? next.title : view.meta.title;
+  document.title = next ? [next.title, next.parentTitle, view.meta.title].filter(Boolean).join(' · ') : view.meta.title;
+  window.scrollTo(0, scroll);
   if (!first) title.focus({ preventScroll: true });
 }
 
+// Back leads one level up: a group page to its section, a section to home.
 function goBack() {
-  if (view.cameFromHome) {
+  const { screen } = view.current;
+  if (view.fromParent.has(screen)) {
     history.go(view.entryPushed ? -2 : -1);
   } else {
-    history.replaceState(null, '', routeFor(null));
+    history.replaceState(null, '', routeFor(parentScreen(screen)));
     route();
   }
 }
