@@ -131,9 +131,8 @@ function renderHome(doc) {
       h(
         'a',
         { class: 'menu-link', href: routeFor(item.id) },
-        menuIcon(item.title),
+        h('span', { class: 'menu-tile' }, menuIcon(item.title)),
         h('span', { class: 'menu-title' }, item.title),
-        item.detail ? h('span', { class: 'menu-detail' }, item.detail) : null,
       ),
     );
   }
@@ -435,13 +434,16 @@ function mapPin() {
   return svg;
 }
 
-// Matched on the heading's own words, so renaming a section keeps its icon.
+// Matched on the heading's own words, so renaming a section keeps its icon. Each
+// follows the pictogram people already read on signs: a prayer mat with its arch, a
+// toilet with a water drop, a domed mosque, a plate with fork and knife, a
+// shopping basket.
 const MENU_ICONS = [
-  [/prayer|salah|jummah/i, ['M4.5 20v-7.5a7.5 7.5 0 0 1 15 0V20', 'M2.5 20h19']],
-  [/washroom|wudu|toilet|bidet/i, ['M12 3.25s5.75 6.1 5.75 9.75a5.75 5.75 0 1 1-11.5 0C6.25 9.35 12 3.25 12 3.25Z']],
-  [/mosque|masjid|musolla/i, ['M5.5 20v-4.5a6.5 6.5 0 0 1 13 0V20', 'M3 20h18', 'M12 9V6.25', 'M9.5 20v-3.5a2.5 2.5 0 0 1 5 0V20']],
-  [/food|eat|canteen|restaurant|meal/i, ['M3.5 12h17a8.5 8.5 0 0 1-17 0Z', 'M2.5 20h19', 'M9 4.5v3', 'M12 3.5v4', 'M15 4.5v3']],
-  [/grocer|shop|market|store/i, ['M6.5 8.5h11l1 11h-13Z', 'M9.5 8.5a2.5 2.5 0 0 1 5 0']],
+  [/prayer|salah|jummah/i, ['M7 3.5h10a1 1 0 0 1 1 1V19H6V4.5a1 1 0 0 1 1-1Z', 'M9.25 16.5V11c0-1.8 1.2-3 2.75-4c1.55 1 2.75 2.2 2.75 4v5.5', 'M7.5 19v2', 'M10.5 19v2', 'M13.5 19v2', 'M16.5 19v2']],
+  [/washroom|wudu|toilet|bidet/i, ['M4.5 4h4.5v7.5H4.5Z', 'M3.5 11.5h13.5', 'M4.5 11.5c0 3.1 2 5.1 5 5.6L9 20.5h6l-.6-3.6c2.2-.9 3.6-2.8 3.6-5.4', 'M17 3s2.25 2.45 2.25 4a2.25 2.25 0 0 1-4.5 0C14.75 5.45 17 3 17 3Z']],
+  [/mosque|masjid|musolla/i, ['M5.5 20v-5.5a6.5 6.5 0 0 1 13 0V20', 'M3 20h18', 'M12 8V4', 'M10 20v-3a2 2 0 0 1 4 0v3']],
+  [/food|eat|canteen|restaurant|meal/i, ['M12 7a5 5 0 1 1 0 10a5 5 0 1 1 0-10Z', 'M3 3.5v4a1.5 1.5 0 0 0 3 0v-4', 'M4.5 3.5v17', 'M20.5 20.5v-17c-1.6.9-2.5 3.2-2.5 6.5h2.5']],
+  [/grocer|shop|market|store/i, ['M3 9.5h18l-2 10.5H5Z', 'M7.5 9.5 11 3.5', 'M16.5 9.5 13 3.5', 'M9.5 13v3.5', 'M14.5 13v3.5']],
 ];
 const FALLBACK_ICON = ['M5 6.5h14', 'M5 12h14', 'M5 17.5h9'];
 

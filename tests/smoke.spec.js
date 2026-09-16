@@ -48,6 +48,7 @@ test('home loads with a menu in content.md order and no console errors', async (
   await openHome(page);
   await expect(page).toHaveTitle(doc.meta.title);
   await expect(page.locator('.menu-link .menu-title')).toHaveText(sections.map((s) => s.title));
+  await expect(page.locator('.menu-link'), 'the menu shows headings only, no group names under them').toHaveText(sections.map((s) => s.title));
   expect(sections[0].title, 'prayer comes before food').toMatch(/prayer/i);
   expect(errors).toEqual([]);
 });

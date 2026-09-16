@@ -164,7 +164,7 @@ export function linkText(href, label) {
 export function menuItems(doc) {
   return doc.sections
     .filter((s) => s.published)
-    .map((s) => ({ id: s.id, title: s.title, detail: s.subsections.map((sub) => sub.title).join(' · ') }));
+    .map((s) => ({ id: s.id, title: s.title }));
 }
 
 // Every published entry with the section and subsection it sits in.
