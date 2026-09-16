@@ -56,18 +56,13 @@ It will tell you about unknown keys, bad status values, and dead links.
 ## Prayer Rooms
 
 ### Z302a
-- tag: Main prayer room
-- location: Z Core
 - access: Student card entry
 - arrangement: Men's & women's areas
 - prayers: Daily prayers + Jummah
-- wudu: No wudu area inside
 - link: https://mosque-prayer-display-screen-cyan.vercel.app
 - link-label: Live prayer times
 
 ### PQ502a
-- tag: Second prayer room
-- location: PQ Core
 - access: Student card entry
 - arrangement: Men's & women's areas
 - prayers: Daily prayers
@@ -209,12 +204,6 @@ Hours change often, so they are not listed.
 - status: check-packaging
 - tags: Snacks
 
-### Vending machine
-- where: Homantin Halls, G/F canteen
-- status: check-packaging
-- tags: Frozen meals
-- TODO: confirm the machine's brand name
-
 ### 7-Eleven
 - where: Campus-wide
 - status: check-packaging
@@ -223,20 +212,17 @@ Hours change often, so they are not listed.
 - link: https://www.polyu.edu.hk/fo/visitors/campus-wide-facilities/
 - TODO: list the specific certified instant noodles, juices and snacks if anyone verifies them
 
-> No other PolyU catering outlet serves halal food.
-
 ## Halls
 
-### Turnep Roast & Relish
-- tags: 7 min from Homantin · 5 min from Hung Hom
-- perk: Student discount
-- link: https://maps.app.goo.gl/yXLLkUV1xu2xQqSq9
-- TODO: confirm halal certification status
+### Vending machine
+- where: Homantin Halls, G/F canteen
+- status: check-packaging
+- tags: Frozen meals
+- TODO: confirm the machine's brand name
 
-### Ebenezers
-- status: certified
-- tags: 5 min from Homantin
-- link: https://maps.app.goo.gl/Qa2TDpEVNJesHDoQA
+### Hung Hom Halls canteen
+- where: Hung Hom Halls
+- TODO: what is halal there, which counter, and the certification status
 
 ## Delivery
 
@@ -245,21 +231,21 @@ Hours change often, so they are not listed.
 ### Pakistani Halal Food
 - status: unverified
 - price: ≈HK$40 a meal
-- tags: South Asian meals · Several options daily
+- sells: South Asian meals
 - link: https://chat.whatsapp.com/LWmReNeQYwHFVJJMLz2yZ9
 - TODO: delivery area
 
 ### Bangladeshi Halal Food (Ruby Foods)
 - status: unverified
 - price: ≈HK$40 a meal
-- tags: South Asian meals · Several options daily
+- sells: South Asian meals
 - link: https://chat.whatsapp.com/LcFJXcxJQ3jE4zf7vVgqMd
 - TODO: delivery area
 
 ### Halal Food Delivery HK (Maryam Aunty)
 - status: unverified
 - price: ≈HK$40 a meal
-- tags: South Asian meals · Several options daily
+- sells: South Asian meals
 - link: https://chat.whatsapp.com/FbKoipG7m17GC9HOghzt2C
 - TODO: delivery area
 
