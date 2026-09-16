@@ -53,7 +53,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 # Prayer Facilities
 
-## Prayer Rooms
+## Prayer Rooms on Campus
 
 ### Z302a
 - access: Student card entry
@@ -77,6 +77,21 @@ It will tell you about unknown keys, bad status values, and dead links.
 - location: 1/F, beside the gym
 - access: Residents only
 
+## Discover Islam Masjid
+
+### Discover Islam Hong Kong
+- district: Hung Hom
+- address: Hung Hom, Kowloon
+- tags: 5 daily prayers · Friday khutbah
+- notes: Times on Athan Plus, or ask on arrival.
+- link: https://maps.app.goo.gl/fpzSoC8n3iSdeTu69
+- TODO: exact street address, confirmed Jummah time, whether students are welcome
+
+### Athan Plus
+- note: Prayer times for HK mosques
+- link: https://play.google.com/store/apps/details?id=com.masjidal.athanplus
+- TODO: iOS App Store link
+
 ---
 
 # Muslim-Friendly Washrooms
@@ -88,83 +103,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Core E
 - floors: All floors
 - feature: Bidet
-
----
-
-# Mosques of Hong Kong
-
-### Athan Plus
-- note: Prayer times for HK mosques
-- link: https://play.google.com/store/apps/details?id=com.masjidal.athanplus
-- TODO: iOS App Store link
-
-> **Friday prayer:** Kowloon, Jamia and Ammar hold full Jumu'ah. Sermons in Arabic, English, Urdu or Cantonese. Arrive 30 min early.
-
-## Near PolyU
-
-### Discover Islam Hong Kong
-- district: Hung Hom
-- address: Hung Hom, Kowloon
-- tags: 5 daily prayers · Friday khutbah
-- notes: Times on Athan Plus, or ask on arrival.
-- link: https://maps.app.goo.gl/fpzSoC8n3iSdeTu69
-- TODO: exact street address, confirmed Jummah time, whether students are welcome
-
-### To Kwa Wan Prayer Space
-- district: To Kwa Wan
-- address: G/F, 19 San Shan Road, To Kwa Wan, Kowloon
-- tags: Local musolla · Wudu area
-- TODO: map link
-
-### Masjid Ibrahim
-- district: Yau Ma Tei
-- address: Shop C-1, G/F, Executive Building, 10–16 Ferry Street, Yau Ma Tei
-- tags: Community hub · Daily prayers · Classes
-- TODO: map link
-
-## Major Mosques
-
-### Kowloon Mosque & Islamic Centre
-- district: Tsim Sha Tsui
-- address: 105 Nathan Road, Tsim Sha Tsui, Kowloon
-- tags: Women's section · Library · Madrasa · Near TST halal food
-- jummah: yes
-- TODO: map link
-
-### Masjid Ammar & Osman Ramju Sadick Islamic Centre
-- district: Wan Chai
-- address: 40 Oi Kwan Road, Wan Chai, Hong Kong Island
-- tags: Halal canteen 5/F · HK$50–100 · 10am–8pm · Free iftar in Ramadan · Islamic Union of HK · HK Islamic Youth Association
-- jummah: yes
-- link: https://maps.app.goo.gl/h5x7Y5Dc5D3g8cFR7
-
-### Jamia Mosque
-- district: Mid-Levels
-- address: 30 Shelley Street, Mid-Levels, Central
-- tags: Oldest mosque in HK (1890) · Grade I historic building
-- jummah: yes
-- TODO: map link
-
-### Chai Wan Mosque
-- district: Chai Wan
-- address: 21 Cape Collinson Road, Chai Wan, Hong Kong Island
-- tags: Beside the Muslim cemetery · Quiet and green
-- TODO: map link
-
-## Local Musollas
-
-### Kwun Tong Musolla
-- district: Kwun Tong
-- address: Flat D, 4/F, Yip Fat Factory Building Phase 1, 77 Hoi Yuen Road, Kwun Tong
-
-### Tung Chung Islamic Centre
-- district: Lantau
-- address: Yat Tung Estate / Caribbean Coast area, Tung Chung, Lantau
-- jummah: yes
-
-### Tuen Mun Musolla
-- district: Tuen Mun
-- address: Shop 26, G/F, Hoi Hoi Building, 15 Hoi Wong Road, Tuen Mun
 
 ---
 

@@ -25,6 +25,15 @@ function load() {
   return { doc, sections, screens, entries, links };
 }
 
+// Every entry object in the parsed document, however deeply nested.
+function* walk(node) {
+  if (Array.isArray(node)) for (const item of node) yield* walk(item);
+  else if (node && typeof node === 'object') {
+    if (node.type === 'entry') yield node;
+    for (const value of Object.values(node)) yield* walk(value);
+  }
+}
+
 const screenView = (page, id) => page.locator(`[data-screen="${id}"]`);
 const clean = (text) => text.replace('Halal status: ', '').replace(/\s+/g, ' ').trim();
 
@@ -220,6 +229,8 @@ test('map links carry a pin icon drawn in the page', async ({ page }) => {
   await page.goto('/#/halal-groceries');
   const mapLink = screenView(page, 'halal-groceries').locator('a[href*="maps.app.goo.gl"]').first();
   await expect(mapLink.locator('svg.link-icon')).toHaveCount(1);
+  const pinned = await page.$$eval('.entry-link', (links) => links.filter((a) => a.querySelector('svg.link-icon')).map((a) => a.getAttribute('href')));
+  expect(pinned.filter((href) => !/^https:\/\/(maps\.app\.goo\.gl|(www\.)?google\.com\/maps)\//.test(href)), 'only map links carry the pin').toEqual([]);
   const external = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).host).filter((h) => h !== location.host));
   expect(external, 'the page must not load anything from a third party').toEqual([]);
 });
@@ -349,11 +360,22 @@ test.describe('copy address', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
   test('copies the exact address from content.json', async ({ page }) => {
-    const { screens } = load();
-    const withCopy = screens
+    const { doc, screens } = load();
+    const withAddress = screens
       .flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry })))
-      .find(({ entry }) => entry.fields.some((f) => f.key === 'address') && !entry.fields.some((f) => f.key === 'link'));
-    test.skip(!withCopy, 'no entry has an address without a link');
+      .filter(({ entry }) => entry.fields.some((f) => f.key === 'address'));
+    let withCopy = withAddress.find(({ entry }) => !entry.fields.some((f) => f.key === 'link'));
+    if (!withCopy && withAddress.length) {
+      // Every address has a map link today, so the button would never show. Serve a copy
+      // of content.json with one link removed, so the button stays tested.
+      withCopy = withAddress[0];
+      const id = withCopy.entry.id;
+      for (const block of walk(doc)) {
+        if (block.id === id && block.fields) block.fields = block.fields.filter((f) => f.key !== 'link' && f.key !== 'link-label');
+      }
+      await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
+    }
+    test.skip(!withCopy, 'no entry has an address');
 
     const address = withCopy.entry.fields.find((f) => f.key === 'address').value;
     await page.goto(`/#/${withCopy.screenId}/${withCopy.entry.id}`);
