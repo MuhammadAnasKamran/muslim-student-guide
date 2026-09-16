@@ -389,12 +389,11 @@ function renderChip(chip) {
   return h('span', { class: chip.muted ? 'chip chip-muted' : 'chip' }, chip.text);
 }
 
-function renderLink({ href, text, host }) {
-  const isMap = host === 'maps.app.goo.gl' || host.endsWith('google.com');
+function renderLink({ href, text, host, map }) {
   return h(
     'a',
     { class: 'entry-link', href, rel: 'noopener', target: '_blank' },
-    isMap ? mapPin() : null,
+    map ? mapPin() : null,
     h('span', { class: 'link-lines' }, h('span', { class: 'link-text' }, text), h('span', { class: 'link-host' }, host)),
     h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
   );

@@ -8,6 +8,7 @@ import {
   hasGroupPages,
   groupSummary,
   isInfoCard,
+  linkText,
   menuItems,
   parentScreen,
   parseRoute,
@@ -142,6 +143,14 @@ test('entries made of note and link are info cards', () => {
   assert.equal(isInfoCard(entry('Athan Plus', { note: 'Prayer times', link: 'https://play.google.com/x' })), true);
   assert.equal(isInfoCard(entry('Tip', { note: 'Check the pack' })), true);
   assert.equal(isInfoCard(entry('Shop', { note: 'x', address: 'y' })), false);
+});
+
+test('only Google Maps links are marked as maps, so only they get the pin', () => {
+  assert.equal(linkText('https://maps.app.goo.gl/fpzSoC8n3iSdeTu69').map, true);
+  assert.equal(linkText('https://www.google.com/maps/place/x').map, true);
+  assert.equal(linkText('https://play.google.com/store/apps/details?id=x').map, false);
+  assert.equal(linkText('https://www.google.com/search?q=x').map, false);
+  assert.equal(linkText('https://chat.whatsapp.com/x').map, false);
 });
 
 test('page addresses round-trip', () => {

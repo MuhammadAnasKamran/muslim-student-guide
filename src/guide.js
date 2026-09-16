@@ -150,14 +150,14 @@ export function rowParts(entry, shared = []) {
 export function linkText(href, label) {
   const { hostname, pathname } = new URL(href);
   const host = hostname.replace(/^www\./, '');
-  if (label) return { text: label, host };
-  if (host === 'maps.app.goo.gl' || (host.endsWith('google.com') && pathname.startsWith('/maps'))) {
-    return { text: 'Open in Google Maps', host };
-  }
-  if (host === 'chat.whatsapp.com') return { text: 'Join the WhatsApp group', host };
-  if (host === 'play.google.com') return { text: 'Open in Google Play', host };
-  if (pathname.toLowerCase().endsWith('.pdf')) return { text: 'Open the PDF', host };
-  return { text: 'Visit the website', host };
+  // Only a Google Maps address gets the map pin: play.google.com is not a map.
+  const map = host === 'maps.app.goo.gl' || (/(^|\.)google\.com$/.test(host) && !host.startsWith('play.') && pathname.startsWith('/maps'));
+  if (label) return { text: label, host, map };
+  if (map) return { text: 'Open in Google Maps', host, map };
+  if (host === 'chat.whatsapp.com') return { text: 'Join the WhatsApp group', host, map };
+  if (host === 'play.google.com') return { text: 'Open in Google Play', host, map };
+  if (pathname.toLowerCase().endsWith('.pdf')) return { text: 'Open the PDF', host, map };
+  return { text: 'Visit the website', host, map };
 }
 
 // One home-menu button per published `#` section, in content.md order.
