@@ -23,6 +23,16 @@ function luminance(hex) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+function contrastRgb(a, b) {
+  const [hi, lo] = [luminanceRgb(a), luminanceRgb(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function luminanceRgb(channels) {
+  const [r, g, b] = channels.map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function contrast(a, b) {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
@@ -70,6 +80,44 @@ for (const [mode, palette] of [['light', light], ['dark', dark]]) {
     assert.deepEqual(failures, []);
   });
 }
+
+// The app bar is translucent, so the worst case is the lightest surface scrolling
+// under it, plus the pattern overlay on top.
+test('the frosted app bar keeps its title readable in both modes', () => {
+  const glass = [...css.matchAll(/--header-glass:\s*rgb\((\d+) (\d+) (\d+) \/ (\d+)%\)/g)];
+  assert.equal(glass.length, 2, 'light and dark both need a --header-glass');
+  const patternOpacity = Number(css.match(/\.appbar::before[^}]*opacity:\s*([\d.]+)/s)[1]);
+  const rgb = (hex) => hex.slice(1).match(/../g).map((c) => parseInt(c, 16));
+  const over = (fg, bg, alpha) => fg.map((v, i) => v * alpha + bg[i] * (1 - alpha));
+
+  for (const [mode, palette, match] of [['light', light, glass[0]], ['dark', dark, glass[1]]]) {
+    const ink = rgb(palette['header-ink']);
+    const bar = over([Number(match[1]), Number(match[2]), Number(match[3])], rgb(palette.surface), Number(match[4]) / 100);
+    const ratio = contrastRgb(ink, over(ink, bar, patternOpacity));
+    assert.ok(ratio >= 4.5, `${mode}: app bar title is ${ratio.toFixed(2)}, needs 4.5`);
+  }
+});
+
+// Cards carrying the geometric pattern still have to pass AA underneath it.
+test('patterned surfaces keep their text readable', () => {
+  const plate = Number(css.match(/\.pattern-plate::before,[\s\S]*?opacity:\s*([\d.]+)/)[1]);
+  const legend = Number(css.match(/\.legend::before\s*{\s*opacity:\s*([\d.]+)/)[1]);
+  const rgb = (hex) => hex.slice(1).match(/../g).map((c) => parseInt(c, 16));
+  const over = (fg, bg, alpha) => fg.map((v, i) => v * alpha + bg[i] * (1 - alpha));
+
+  for (const [mode, palette] of [['light', light], ['dark', dark]]) {
+    const accent = rgb(palette.accent);
+    const checks = [
+      ['ink on a patterned info card', rgb(palette.ink), over(accent, rgb(palette['accent-soft']), plate)],
+      ['warning text on a patterned alert', rgb(palette['warn-ink']), over(accent, rgb(palette['warn-bg']), plate)],
+      ['muted text on the patterned labels card', rgb(palette.muted), over(accent, rgb(palette.surface), legend)],
+    ];
+    for (const [what, fg, bg] of checks) {
+      const ratio = contrastRgb(fg, bg);
+      assert.ok(ratio >= 4.5, `${mode}: ${what} is ${ratio.toFixed(2)}, needs 4.5`);
+    }
+  }
+});
 
 test('dark mode redefines its colours rather than reusing light ones', () => {
   for (const name of ['ink', 'bg', 'surface', 'accent', 'accent-soft', 'warn-bg', 'certified-bg', 'amber-bg', 'grey-bg']) {

@@ -137,7 +137,7 @@ function renderHome(doc) {
   const results = h('div', { class: 'results', hidden: true });
   const emptyTitle = h('p', { class: 'empty-title' });
   const reset = h('button', { class: 'button', type: 'button' }, 'Clear search');
-  const empty = h('div', { class: 'empty-state', hidden: true }, emptyTitle, h('p', {}, 'Check the spelling or try a shorter word.'), reset);
+  const empty = h('div', { class: 'empty-state pattern-plate', hidden: true }, emptyTitle, h('p', {}, 'Check the spelling or try a shorter word.'), reset);
 
   const node = h(
     'div',
@@ -310,7 +310,7 @@ function renderInfoCard(entry, id, context) {
   const note = entry.fields.find((f) => f.key === 'note')?.value;
   return h(
     'div',
-    { class: 'info-card', id, 'data-entry-id': entry.id },
+    { class: 'info-card pattern-plate', id, 'data-entry-id': entry.id },
     context ? h('span', { class: 'row-context' }, context) : null,
     h('h3', { class: 'info-title' }, entry.name),
     note ? h('p', { class: 'info-note' }, note) : null,

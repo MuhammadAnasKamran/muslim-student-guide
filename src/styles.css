@@ -19,6 +19,9 @@
 
   --header-bg: #12695A;
   --header-ink: #FFFFFF;
+  --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.5'%3E%3Cpath d='M7 7h34v34H7z'/%3E%3Cpath d='M24 0 48 24 24 48 0 24z'/%3E%3Cpath d='M0 0 13 13M48 0 35 13M0 48 13 35M48 48 35 35'/%3E%3C/g%3E%3C/svg%3E");
+  --pattern-size: 52px;
+  --header-glass: rgb(18 105 90 / 92%);
 
   --warn-bg: #FDF3DC;
   --warn-ink: #5C3B00;
@@ -55,6 +58,7 @@
 
     --header-bg: #0F2A24;
     --header-ink: #E6EEEA;
+    --header-glass: rgb(15 42 36 / 92%);
 
     --warn-bg: #33270C;
     --warn-ink: #F6D58E;
@@ -138,6 +142,30 @@ input {
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--header-bg);
   color: var(--header-ink);
+}
+
+/* Frosted glass, done by the browser: no library, no third-party code. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .appbar {
+    background: var(--header-glass);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+  }
+}
+
+.appbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--header-ink);
+  -webkit-mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
+  mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.appbar-inner {
+  position: relative;
 }
 
 .appbar-raised {
@@ -577,6 +605,33 @@ main {
   cursor: pointer;
 }
 
+.pattern-plate {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.alert,
+.legend {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.pattern-plate::before,
+.alert::before,
+.legend::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  -webkit-mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
+  mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
 .info-card {
   display: grid;
   gap: 0.375rem;
@@ -584,6 +639,9 @@ main {
   border: 1px solid var(--accent);
   border-radius: var(--radius);
   background: var(--accent-soft);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   scroll-margin-top: calc(var(--appbar-height) + 0.75rem);
 }
 
@@ -594,6 +652,11 @@ main {
 
 .info-card .entry-link {
   margin-top: 0.25rem;
+}
+
+/* Lighter here: the meanings under each badge are muted text. */
+.legend::before {
+  opacity: 0.05;
 }
 
 .legend {
