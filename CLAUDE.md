@@ -133,6 +133,9 @@ The logic lives in `src/guide.js`.
 - Map links carry a pin icon drawn in the page. Never load map images from a third party,
   and never build a map URL that isn't in `content.md`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
+- On long screens (the Halal Food screen, matched on the word "food" in its title) each
+  `##` group is a block that opens on tap. A closed block's header shows the listing count,
+  every halal status with how many rows carry it, and the group's warnings.
 
 ---
 
@@ -180,8 +183,8 @@ tests/
 - Status shown as a word plus colour, never colour alone — for colourblind readers and grayscale printing.
 - Minimum 48px tap targets. People tap these while walking.
 - No modals or carousels. Rows may open on tap, but the name, where it is, and the halal
-  status word must be visible without tapping — on the row, or once above a group where every
-  row shares it. Halal status, prayer times, access limits and warnings are never folded away.
+  status word must be visible without tapping — on the row, once above a group where every
+  row shares it, or counted on the header of a closed block. Halal status, prayer times, access limits and warnings are never folded away.
 - Short, plain words, as tags rather than sentences. Say a fact once, as briefly as it stays exact.
 - One theme, dark, for now: the light palette was removed on 2026-09-16 because the
   background photograph only reads on a dark ground. Bringing light mode back means a

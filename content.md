@@ -193,11 +193,10 @@ Hours change often, so they are not listed.
 - tags: Some items halal certified · Check before buying
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/x-cafe/
 
-### Fresh Up vending machine
+### Campus vending machine
 - where: VA210
-- status: check-packaging
-- tags: Halal snacks · Halal logo on machine
-- TODO: confirm the machine's name (Fresh Up or Freshop)
+- status: certified
+- tags: Snacks only · Halal logo on machine
 
 ### 7-Eleven
 - where: Campus-wide
@@ -217,17 +216,11 @@ Hours change often, so they are not listed.
 - warning: Only these 3 meals are halal. Other dishes are not.
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
 
-### Hung Hom Halls vending machines
-- where: Hung Hom Halls
-- status: check-packaging
-- tags: One machine has all-halal meals · Check before buying
-- TODO: which machine it is, and whether its meals carry a halal certificate
-
 ### Homantin Halls vending machine
 - where: Homantin Halls, G/F canteen
 - status: check-packaging
-- tags: Frozen meals
-- TODO: confirm the machine's brand name
+- tags: Frozen halal meals · Check before buying
+- warning: The Homantin canteen itself has no halal food.
 
 ## Delivery
 

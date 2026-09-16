@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import { parseContent, toPublicJson } from '../../scripts/parse.mjs';
 import {
   entryContexts,
+  foldsGroups,
+  groupSummary,
   isInfoCard,
   menuItems,
   parseRoute,
@@ -105,6 +107,29 @@ test('a warning is shown on the row and never shown once for the group', () => {
   assert.deepEqual(rowParts(canteen).warnings, ['Only these 3 meals are halal. Other dishes are not.']);
   const twin = entry('HH', { status: 'certified-section', tags: 'Chicken thigh curry', warning: 'Only these 3 meals are halal. Other dishes are not.' });
   assert.equal(sharedFacts([canteen, twin]).some((f) => f.key === 'warning'), false);
+});
+
+test('a closed block counts every halal status inside it', () => {
+  const summary = groupSummary([
+    entry('A', { status: 'certified' }),
+    entry('B', { status: 'certified-section' }),
+    entry('C', { status: 'certified' }),
+    entry('D', { walk: '5 min' }, { statusMissing: true }),
+    entry('Tip', { note: 'Check the pack' }),
+  ]);
+  assert.equal(summary.total, 5);
+  assert.deepEqual(summary.statuses.map((s) => [s.label, s.count]), [
+    ['Halal certified', 2],
+    ['Certified section only', 1],
+    ['Status not recorded', 1],
+  ]);
+});
+
+test('only the food screen folds its groups', () => {
+  const withGroups = (title) => ({ title, subsections: [{}, {}] });
+  assert.equal(foldsGroups(withGroups('Halal Food Near You')), true);
+  assert.equal(foldsGroups(withGroups('Prayer Facilities')), false);
+  assert.equal(foldsGroups({ title: 'Halal Food', subsections: [{}] }), false, 'a single group has nothing to fold');
 });
 
 test('a key with no place on screen fails loudly', () => {

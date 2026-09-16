@@ -66,6 +66,26 @@ export function statusOf(entry) {
   return entry.statusMissing ? { key: 'none', ...STATUS_NOT_RECORDED } : null;
 }
 
+// Screens whose groups fold into tappable blocks, matched on the screen title so a
+// rename that keeps the word keeps the behaviour. Only long lists need it.
+const FOLDING_SCREENS = [/\bfood\b/i];
+
+export function foldsGroups(section) {
+  return section.subsections.length > 1 && FOLDING_SCREENS.some((pattern) => pattern.test(section.title));
+}
+
+// What a closed block shows about the rows inside: how many there are, and how many
+// carry each halal status, so every status is still readable without opening it.
+export function groupSummary(entries) {
+  const counts = new Map();
+  for (const entry of entries) {
+    const status = isInfoCard(entry) ? null : statusOf(entry);
+    if (status) counts.set(status.key, { ...status, count: (counts.get(status.key)?.count ?? 0) + 1 });
+  }
+  const order = [...Object.keys(STATUS_LABELS), 'none'];
+  return { total: entries.length, statuses: order.filter((key) => counts.has(key)).map((key) => counts.get(key)) };
+}
+
 export function isInfoCard(entry) {
   return entry.fields.length > 0 && entry.fields.every((f) => INFO_KEYS.includes(f.key));
 }

@@ -5,7 +5,9 @@
 import {
   STATUS_LABELS,
   entryContexts,
+  foldsGroups,
   formatDate,
+  groupSummary,
   isInfoCard,
   menuItems,
   normalize,
@@ -235,20 +237,29 @@ function renderGroup(section, subsection, rows) {
   const blocks = (subsection ?? section).blocks;
   const shared = sharedFacts(blocks.filter((b) => b.type === 'entry'));
   const group = h('section', { class: 'group' });
+  let body = group;
+  const folded = Boolean(subsection) && foldsGroups(section);
   if (subsection) {
     const id = `group-${subsection.id}`;
     group.setAttribute('aria-labelledby', id);
-    group.append(h('h2', { class: 'group-title', id }, subsection.title));
+    const title = h('h2', { class: 'group-title', id }, subsection.title);
+    if (folded) {
+      body = h('div', { class: 'group-body' });
+      group.append(h('details', { class: 'group-fold' }, renderFoldSummary(title, blocks), body));
+    } else {
+      group.append(title);
+    }
   }
 
   let sharedShown = false;
   for (const block of blocks) {
     if (block.type === 'prose') {
-      group.append(renderProse(block));
+      // A closed block already shows its warnings in the header.
+      if (!(folded && block.kind === 'blockquote')) body.append(renderProse(block));
       continue;
     }
     if (!isInfoCard(block) && shared.length && !sharedShown) {
-      group.append(renderShared(shared));
+      body.append(renderShared(shared));
       sharedShown = true;
     }
     const node = renderEntry(block, { shared, routable: true });
@@ -256,9 +267,28 @@ function renderGroup(section, subsection, rows) {
       rows.set(block.id, node);
       wireRow(node, section.id, block.id);
     }
-    group.append(node);
+    body.append(node);
   }
   return group;
+}
+
+// A closed block's header: the title, how many listings, each halal status with a
+// count, and any warning. Nothing a student needs to decide is hidden inside.
+function renderFoldSummary(title, blocks) {
+  const { total, statuses } = groupSummary(blocks.filter((b) => b.type === 'entry'));
+  const summary = h(
+    'summary',
+    { class: 'group-summary' },
+    title,
+    h('span', { class: 'group-count' }, `${total} ${total === 1 ? 'listing' : 'listings'}`),
+  );
+  if (statuses.length) summary.append(h('span', { class: 'group-statuses' }, ...statuses.map((status) => renderStatus(status, status.count))));
+  for (const block of blocks) {
+    if (block.type === 'prose' && block.kind === 'blockquote') {
+      summary.append(h('span', { class: 'alert group-alert' }, ...renderRuns(block.runs)));
+    }
+  }
+  return summary;
 }
 
 function renderProse(block) {
@@ -330,8 +360,14 @@ function renderShared(shared) {
   return node;
 }
 
-function renderStatus(status) {
-  return h('span', { class: `status status-${status.key}` }, h('span', { class: 'visually-hidden' }, 'Halal status: '), status.label);
+function renderStatus(status, count) {
+  return h(
+    'span',
+    { class: `status status-${status.key}` },
+    h('span', { class: 'visually-hidden' }, 'Halal status: '),
+    status.label,
+    count ? h('span', { class: 'status-count' }, h('span', { class: 'visually-hidden' }, ', '), String(count)) : null,
+  );
 }
 
 function renderChip(chip) {
@@ -486,6 +522,8 @@ function route() {
   if (!entry) view.entryPushed = false;
   if (entry) {
     const row = target.rows.get(entry);
+    const fold = row.closest('details.group-fold');
+    if (fold && !fold.open) fold.open = true;
     if (!row.open) {
       row.open = true;
       row.scrollIntoView({ block: 'start', behavior: reducedMotion.matches ? 'auto' : 'smooth' });

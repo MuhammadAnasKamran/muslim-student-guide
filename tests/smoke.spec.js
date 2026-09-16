@@ -92,33 +92,64 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
     const view = screenView(page, section.id);
     await expect(view).toBeVisible();
 
+    // With every block still closed: statuses on the row, above the group, or counted on
+    // the closed block's header; and every warning note readable.
+    for (const entry of entries) {
+      const fields = Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
+      const expected = fields.status ? STATUS_LABELS[fields.status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
+      if (!expected) continue;
+      const shown = await view.locator(`[data-entry-id="${entry.id}"]`).evaluate((el, label) => {
+        const read = (node) =>
+          Boolean(node) && node.checkVisibility() && node.textContent.replace('Halal status: ', '').replace(/,\s*\d+$/, '').trim() === label;
+        const fold = el.closest('details.group-fold');
+        if (fold && !fold.open) return [...fold.querySelector(':scope > summary').querySelectorAll('.status')].some(read);
+        return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status'));
+      }, expected);
+      if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row, above its group, or on its closed block`);
+    }
+    for (const quote of quotes) {
+      const words = quote.runs.map((r) => r.text).join('').slice(0, 30);
+      if (!(await view.locator('.alert', { hasText: words }).first().isVisible())) problems.push(`${section.title}: warning "${words}" hidden`);
+    }
+
+    // Once a block is opened, row-level warnings and chips must show without opening the row.
+    await view.locator('details.group-fold').evaluateAll((folds) => folds.forEach((fold) => (fold.open = true)));
     for (const entry of entries) {
       const fields = Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
       const card = view.locator(`[data-entry-id="${entry.id}"]`);
-      const expected = fields.status ? STATUS_LABELS[fields.status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
-      if (expected) {
-        // Visible on the row, or once above a group where every row shares it.
-        const shown = await card.evaluate((el, label) => {
-          const read = (node) => node && node.checkVisibility() && node.textContent.replace('Halal status: ', '').trim() === label;
-          return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status'));
-        }, expected);
-        if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row or above its group`);
-      }
-      if (fields.warning) {
-        const note = card.locator('.row-head .row-warning', { hasText: fields.warning });
-        if (!(await note.isVisible())) problems.push(`${entry.name}: warning "${fields.warning}" hidden`);
+      if (fields.warning && !(await card.locator('.row-head .row-warning', { hasText: fields.warning }).isVisible())) {
+        problems.push(`${entry.name}: warning "${fields.warning}" hidden`);
       }
       if (fields.jummah) {
         const chip = card.locator('.row-head .chip', { hasText: fields.jummah === 'yes' ? /^Jummah$/ : /^No Jummah$/ });
         if (!(await chip.isVisible())) problems.push(`${entry.name}: Jummah chip hidden`);
       }
     }
-    for (const quote of quotes) {
-      const words = quote.runs.map((r) => r.text).join('').slice(0, 30);
-      if (!(await view.locator('.alert', { hasText: words }).isVisible())) problems.push(`${section.title}: warning "${words}" hidden`);
-    }
   }
   expect(problems).toEqual([]);
+});
+
+test('Halal Food blocks start closed, summarise what is inside, and open on tap', async ({ page }) => {
+  await page.goto('/#/halal-food-near-you');
+  const view = screenView(page, 'halal-food-near-you');
+  const folds = view.locator('details.group-fold');
+  expect(await folds.count()).toBeGreaterThan(1);
+  for (const fold of await folds.all()) {
+    await expect(fold).not.toHaveAttribute('open');
+    await expect(fold.locator(':scope > summary .group-count')).toBeVisible();
+  }
+
+  const first = folds.first();
+  await expect(first.locator('.row, .info-card').first()).toBeHidden();
+  await first.locator(':scope > summary').click();
+  await expect(first).toHaveAttribute('open', '');
+  await expect(first.locator('.row, .info-card').first()).toBeVisible();
+
+  // A link straight to a row inside a closed block opens the block as well.
+  const rowId = await view.locator('details.group-fold details.row').last().getAttribute('data-entry-id');
+  await page.goto('about:blank');
+  await page.goto(`/#/halal-food-near-you/${rowId}`);
+  await expect(view.locator(`details.row[data-entry-id="${rowId}"]`)).toBeVisible();
 });
 
 test('prayer times, access limits and shared facts show without tapping', async ({ page }) => {
