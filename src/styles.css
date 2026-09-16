@@ -140,7 +140,7 @@ input {
 .appbar-inner {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
   max-width: 40rem;
   min-height: var(--appbar-height);
   margin-inline: auto;
@@ -151,24 +151,44 @@ input {
   outline-color: var(--header-ink);
 }
 
+/* A 48px tap area around a smaller tinted button, so Back reads as a control and
+   not as part of the title. The chevron is drawn, so it centres on the word. */
 .back-button {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  flex: none;
   min-width: 48px;
   min-height: 48px;
-  margin-left: -0.5rem;
-  padding-inline: 0.5rem;
+  margin-left: -0.25rem;
+  padding: 0 0.25rem;
   border: 0;
   background: transparent;
-  color: var(--header-ink);
+  color: var(--accent);
+  font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
 
-.back-button span {
-  font-size: 1.5rem;
+.back-face {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 2.25rem;
+  padding: 0 0.75rem 0 0.5rem;
+  border: 1px solid rgb(111 205 184 / 0.35);
+  border-radius: var(--radius-control);
+  background: var(--accent-soft);
   line-height: 1;
+}
+
+.back-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.back-button:active .back-face {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .appbar-title {

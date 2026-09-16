@@ -62,7 +62,7 @@ test('every token pair meets WCAG AA', () => {
     ['amber-ink', 'amber-bg', TEXT],
     ['grey-ink', 'grey-bg', TEXT],
     ['control-border', 'surface', NON_TEXT],
-    ['accent', 'accent-soft', NON_TEXT],
+    ['accent', 'accent-soft', TEXT], // the Back button's word
     ['focus', 'bg', NON_TEXT],
     ['focus', 'surface', NON_TEXT],
   ]) {
