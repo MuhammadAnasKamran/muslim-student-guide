@@ -19,8 +19,6 @@
 
   --header-bg: #12695A;
   --header-ink: #FFFFFF;
-  --pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23000' stroke-width='1.5'%3E%3Cpath d='M7 7h34v34H7z'/%3E%3Cpath d='M24 0 48 24 24 48 0 24z'/%3E%3Cpath d='M0 0 13 13M48 0 35 13M0 48 13 35M48 48 35 35'/%3E%3C/g%3E%3C/svg%3E");
-  --pattern-size: 52px;
   --header-glass: rgb(18 105 90 / 92%);
 
   --warn-bg: #FDF3DC;
@@ -42,7 +40,7 @@
   --glass-sheen: rgb(255 255 255 / 0.95);
   --glass-underglow: rgb(255 255 255 / 0.30);
   --glass-shadow: 0 6px 18px rgb(27 42 38 / 0.10);
-  --pattern-strength: 0.07;
+  --scrim: rgb(250 247 240 / 0.90);
 
   --radius: 12px;
   --gutter: 1rem;
@@ -86,7 +84,7 @@
     --glass-sheen: rgb(255 255 255 / 0.38);
     --glass-underglow: rgb(255 255 255 / 0.06);
     --glass-shadow: 0 6px 18px rgb(0 0 0 / 0.38);
-    --pattern-strength: 0.09;
+    --scrim: rgb(17 25 22 / 0.78);
   }
 }
 
@@ -167,16 +165,6 @@ input {
   }
 }
 
-.appbar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--header-ink);
-  -webkit-mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
-  mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
-  opacity: 0.06;
-  pointer-events: none;
-}
 
 .appbar-inner {
   position: relative;
@@ -230,15 +218,16 @@ input {
   outline: none;
 }
 
+/* Background photograph by Muhsin ck, from Unsplash (photo 8BcNsqDJy2I), used
+   under the Unsplash Licence. The scrim over it is set so that text keeps its
+   WCAG AA contrast even over the photo's brightest and darkest areas; the
+   figures are checked in tests/unit/contrast.test.mjs. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: var(--accent);
-  -webkit-mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
-  mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
-  opacity: var(--pattern-strength);
+  background: linear-gradient(var(--scrim), var(--scrim)), url("background.jpg") center / cover no-repeat;
   pointer-events: none;
 }
 
@@ -382,7 +371,7 @@ main {
   line-height: 1.3;
 }
 
-/* On the patterned page rather than on a pane, so it uses ink for contrast. */
+/* On the page background rather than on a pane, so it uses ink for contrast. */
 .intro {
   color: var(--ink);
   font-size: 0.9375rem;
@@ -638,32 +627,7 @@ main {
   cursor: pointer;
 }
 
-.pattern-plate {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
 
-.alert,
-.legend {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.pattern-plate::before,
-.alert::before,
-.legend::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--accent);
-  -webkit-mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
-  mask: var(--pattern) 0 0 / var(--pattern-size) var(--pattern-size) repeat;
-  opacity: 0.1;
-  pointer-events: none;
-}
 
 .info-card {
   display: grid;
@@ -685,11 +649,6 @@ main {
 
 .info-card .entry-link {
   margin-top: 0.25rem;
-}
-
-/* Lighter here: the meanings under each badge are muted text. */
-.legend::before {
-  opacity: 0.05;
 }
 
 .legend {

@@ -8,7 +8,10 @@ import { CHIP_KEYS, FIELD_LABELS, SPECIAL_KEYS, STATUS_LABELS, SUMMARY_KEYS } fr
 
 const root = new URL('../../', import.meta.url);
 const read = (file) => readFileSync(new URL(file, root), 'utf8');
-const srcFiles = readdirSync(new URL('src/', root)).map((name) => [name, read(`src/${name}`)]);
+// Text files only: src/ also holds the background photograph.
+const srcFiles = readdirSync(new URL('src/', root))
+  .filter((name) => /\.(html|css|js)$/.test(name))
+  .map((name) => [name, read(`src/${name}`)]);
 
 test('rule 3: no runtime dependencies, dev dependencies pinned exactly', () => {
   const pkg = JSON.parse(read('package.json'));

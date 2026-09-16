@@ -145,8 +145,10 @@ scripts/
   schema.mjs            allowed keys and statuses
   check-links.mjs       every URL still resolves
   dev.mjs               local server
+  measure-background.mjs  brightness of the background photo, for the contrast test
 src/
   index.html
+  background.jpg        background photograph
   app.js                home menu, screens, rows, search, Back button
   guide.js              how entries render; shared with the tests
   styles.css
@@ -182,6 +184,11 @@ tests/
 - Dark mode via `prefers-color-scheme`, no toggle. Recheck badge contrast in dark mode rather than inverting.
 - Respect `prefers-reduced-motion`. Visible focus rings. WCAG AA contrast throughout.
 - System font stack. No webfonts, no Google Fonts.
+- The background photograph is `src/background.jpg`, by Muhsin ck from Unsplash (photo
+  8BcNsqDJy2I), used under the Unsplash Licence. The scrim over it is set so text keeps
+  AA contrast over the photo's brightest and darkest pixels; `npm run test:unit` checks
+  this, and `node scripts/measure-background.mjs` regenerates the figures if the image
+  changes. Any replacement image needs a licence that allows commercial use.
 
 ### Colours
 
