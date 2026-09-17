@@ -413,6 +413,20 @@ test('a photo shows on the right of its row without tapping, and loads from this
   expect(image.width).toBeGreaterThanOrEqual(80);
 });
 
+test('opening a row with a photo shows the photo full width', async ({ page }) => {
+  const { screens } = load();
+  const target = screens
+    .flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry })))
+    .find(({ entry }) => entry.fields.some((f) => f.key === 'photo') && entry.fields.some((f) => f.key === 'link'));
+  test.skip(!target, 'no row has both a photo and something to open');
+  await page.goto(`/#/${target.screenId}/${target.entry.id}`);
+  const large = screenView(page, target.screenId).locator(`[data-entry-id="${target.entry.id}"] .row-body img.row-photo-large`);
+  await expect(large).toBeVisible();
+  await expect.poll(() => large.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+  const [body, img] = await Promise.all([large.locator('..').boundingBox(), large.boundingBox()]);
+  expect(img.width).toBeGreaterThan(body.width * 0.8);
+});
+
 test.describe('copy address', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 

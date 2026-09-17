@@ -356,6 +356,8 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
   }
 
   const body = h('div', { class: 'row-body' });
+  // Opened, the photo shows full width: a menu board can't be read as a thumbnail.
+  if (parts.photo) body.append(h('img', { class: 'row-photo-large', src: parts.photo.src, alt: parts.photo.alt, loading: 'lazy', decoding: 'async' }));
   if (parts.facts.length) {
     body.append(h('dl', { class: 'facts' }, ...parts.facts.map((f) => h('div', { class: 'fact' }, h('dt', {}, f.label), h('dd', {}, f.value)))));
   }

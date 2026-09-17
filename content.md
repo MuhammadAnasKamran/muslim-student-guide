@@ -123,12 +123,14 @@ It will tell you about unknown keys, bad status values, and dead links.
 - status: certified-section
 - tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
 - warning: Only these 3 meals are halal. Other dishes are not.
+- photo: curry-menu.jpg
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/va-student-canteen/
 
 ### Campus vending machine
 - where: VA210
 - status: certified
 - tags: All snacks halal certified · Halal logo on machine
+- photo: campus-vending-machine.jpg
 - TODO: official name of this vending machine
 
 ### Pacific Coffee
@@ -153,6 +155,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - status: certified-section
 - tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
 - warning: Only these 3 meals are halal. Other dishes are not.
+- photo: curry-menu.jpg
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
 
 ### Homantin Halls vending machine
