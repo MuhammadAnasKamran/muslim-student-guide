@@ -82,7 +82,7 @@ test('every entry in content.json is on its screen with its name, facts and link
         problems.push(`${entry.name} is not on ${title}`);
         continue;
       }
-      const name = await card.locator('h3').textContent();
+      const name = await card.locator('h3, h4').first().textContent();
       if (name !== entry.name) problems.push(`name "${name}" should be "${entry.name}"`);
       for (const { key, value } of entry.fields) {
         if (key === 'status' || key === 'jummah' || key === 'prayers') continue;
@@ -94,7 +94,8 @@ test('every entry in content.json is on its screen with its name, facts and link
           continue;
         }
         if (key === 'logo') {
-          const src = await card.locator('img.info-logo, img.row-logo').first().getAttribute('src', { timeout: 2000 });
+          // A branch shows its shop's logo on the row that holds it.
+          const src = await card.evaluate((el) => (el.closest('.row-chain') ?? el).querySelector('img.info-logo, img.row-logo')?.getAttribute('src'));
           if (src !== `photos/${value}`) problems.push(`${entry.name}: logo ${value} not beside its name`);
         } else if (key === 'photo') {
           const src = await page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large, .info-card[data-entry-id="${entry.id}"] > img.info-photo`).first().getAttribute('src', { timeout: 2000 });
@@ -134,7 +135,8 @@ test('halal status and Jummah are visible without tapping, and warnings are neve
         const saidByNote = [...(el.closest('.group')?.querySelectorAll('.alert') ?? [])].some(
           (note) => note.checkVisibility() && note.textContent.toLowerCase().includes(label.toLowerCase()),
         );
-        return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status')) || saidByNote;
+        const chainStatus = el.closest('.row-chain')?.querySelector(':scope > .row-head .status');
+        return read(el.querySelector('.row-head .status')) || read(chainStatus) || read(el.closest('.group')?.querySelector('.shared .status')) || saidByNote;
       }, expected);
       if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row or above its group`);
     }
@@ -478,11 +480,12 @@ test('shop logos sit beside their names, and load', async ({ page }) => {
   for (const { id, entry } of shops) {
     await page.goto('about:blank');
     await page.goto(`/#/${id}`);
-    const row = screenView(page, id).locator(`[data-entry-id="${entry.id}"]`);
+    // A branch's logo is on the shop row that holds it.
+    const row = screenView(page, id).locator(`.row-chain:has([data-entry-id="${entry.id}"]), [data-entry-id="${entry.id}"]:not(.branch)`).first();
     const logo = row.locator('.row-title img.row-logo');
     await expect(logo).toBeVisible();
     await expect.poll(() => logo.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
-    const [image, name] = await Promise.all([logo.boundingBox(), row.locator('h3').boundingBox()]);
+    const [image, name] = await Promise.all([logo.boundingBox(), row.locator('.row-title h3').boundingBox()]);
     expect(image.x + image.width, `${entry.name}: logo left of the name`).toBeLessThanOrEqual(name.x);
   }
   // Every name in a group with logos starts in the same place, logo or not.
@@ -563,6 +566,34 @@ test('a map button shows a map preview with a pin on the place, served by this s
   expect(Math.abs(offset.y), 'pin tip is centred down').toBeLessThanOrEqual(1.5);
   const external = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).host).filter((h) => h !== location.host));
   expect(external, 'map tiles come from this site').toEqual([]);
+});
+
+test('ParknShop is one row that opens to its three branches, each with a map', async ({ page }) => {
+  const { entries } = load();
+  const branches = entries.filter((e) => e.name.startsWith('ParknShop ('));
+  expect(branches.length).toBe(3);
+  await page.goto('/#/halal-groceries');
+  const view = screenView(page, 'halal-groceries');
+  const row = view.locator('details.row-chain', { has: page.locator('h3', { hasText: /^ParknShop$/ }) });
+  await expect(row).toHaveCount(1);
+  await expect(row.locator('.row-summary')).toHaveText('3 branches');
+  await row.locator('summary').click();
+  await expect(page).toHaveURL(new RegExp(`#/halal-groceries/${branches[0].id}$`));
+  for (const branch of branches) {
+    const link = branch.fields.find((f) => f.key === 'link').value;
+    const item = row.locator(`.branch[data-entry-id="${branch.id}"]`);
+    await expect(item.locator('h4')).toHaveText(branch.name);
+    await expect(item.locator(`a[href="${link}"] .map-preview`)).toBeVisible();
+  }
+  await page.goBack();
+  await expect(row).not.toHaveAttribute('open');
+
+  // An address to the third branch opens the shop's row.
+  await page.goto('about:blank');
+  await page.goto(`/#/halal-groceries/${branches[2].id}`);
+  await expect(row).toHaveAttribute('open', '');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(page.locator('.menu')).toBeVisible();
 });
 
 test.describe('copy address', () => {

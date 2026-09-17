@@ -127,6 +127,9 @@ The logic lives in `src/guide.js`.
     value holds several chips separated by ` · `, so facts read as tags, not sentences;
   - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`
     and `price`.
+- Branches of one shop, rows next to each other named "ParknShop (near campus)" and so on with the
+  same status and logo and nothing but a link, show as one "ParknShop" row that opens to list each
+  branch and its map. Any difference between branches (status, warning, tags) keeps them apart.
 - `warning` is a caveat that must be read before acting ("Only these 3 meals are halal.
   Other dishes are not."). It shows in amber and is never shared. On a row that opens, it is the
   first thing in the drop-down (the committee's call, to keep cards short; the status word stays

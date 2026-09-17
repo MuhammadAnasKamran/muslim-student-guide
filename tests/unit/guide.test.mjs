@@ -6,6 +6,7 @@ import {
   entryContexts,
   groupScreenId,
   hasGroupPages,
+  branchChains,
   directLinkEntry,
   isInfoCard,
   linkText,
@@ -208,6 +209,18 @@ test('map preview tiles cover the preview and put the place in the middle', () =
   const leftmost = Math.min(...tiles.map((t) => t.left));
   const rightmost = Math.max(...tiles.map((t) => t.left)) + 256;
   assert.ok(leftmost <= -340 && rightmost >= 340, 'tiles span the full preview width');
+});
+
+test('branches of one shop with nothing different between them become one row', () => {
+  const shop = (where, extra = {}) => entry(`ParknShop (${where})`, { status: 'check-packaging', logo: 'p.jpg', link: `https://maps.app.goo.gl/${where}`, ...extra });
+  const [chain, other] = branchChains([shop('campus'), shop('halls'), entry('Taste', { status: 'check-packaging', link: 'https://maps.app.goo.gl/t' })]);
+  assert.equal(chain.type, 'chain');
+  assert.equal(chain.name, 'ParknShop');
+  assert.deepEqual(chain.branches.map((b) => b.label), ['campus', 'halls']);
+  assert.equal(other.name, 'Taste');
+  assert.equal(branchChains([shop('campus'), shop('halls', { status: 'certified' })]).some((b) => b.type === 'chain'), false, 'different statuses are never merged');
+  assert.equal(branchChains([shop('campus'), shop('halls', { warning: 'No meat' })]).some((b) => b.type === 'chain'), false, 'a warning keeps its branch separate');
+  assert.equal(branchChains([shop('campus')])[0].type, 'entry', 'one branch is just a row');
 });
 
 test('page addresses round-trip', () => {

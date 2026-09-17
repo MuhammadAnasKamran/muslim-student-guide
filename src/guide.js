@@ -122,6 +122,32 @@ export function noteSaysStatus(blocks, statusKey) {
   return Boolean(label) && blocks.some((b) => b.type === 'prose' && b.kind === 'blockquote' && b.runs.map((r) => r.text).join('').toLowerCase().includes(label));
 }
 
+// Branches of one shop: rows next to each other named "ParknShop (near campus)",
+// "ParknShop (Whampoa)" ... show as one "ParknShop" row that opens to list each branch
+// and its map. Only when every branch has the same status and logo and nothing else
+// but a link, so no difference between branches is ever hidden.
+const BRANCH_NAME = /^(.+?) \((.+)\)$/;
+const BRANCH_KEYS = new Set(['status', 'logo', 'link']);
+
+export function branchChains(blocks) {
+  const out = [];
+  for (const block of blocks) {
+    const match = block.type === 'entry' && !isInfoCard(block) && block.name.match(BRANCH_NAME);
+    const fields = match ? fieldMap(block) : null;
+    const plain = match && fields.link && block.fields.every((f) => BRANCH_KEYS.has(f.key));
+    const last = out.at(-1);
+    if (plain && last?.type === 'chain' && last.name === match[1] && last.status === fields.status && last.logo === fields.logo) {
+      last.branches.push({ entry: block, label: match[2] });
+    } else if (plain) {
+      out.push({ type: 'chain', name: match[1], status: fields.status, logo: fields.logo, branches: [{ entry: block, label: match[2] }] });
+    } else {
+      out.push(block);
+    }
+  }
+  // A "chain" of one is just its entry.
+  return out.map((b) => (b.type === 'chain' && b.branches.length === 1 ? b.branches[0].entry : b));
+}
+
 // Facts that every row in a group has with the same value, so the screen can
 // say them once above the rows instead of on each one.
 export function sharedFacts(entries) {

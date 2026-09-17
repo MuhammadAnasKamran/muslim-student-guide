@@ -9,6 +9,7 @@ import {
   directLinkEntry,
   formatDate,
   groupScreenId,
+  branchChains,
   hasGroupPages,
   noteSaysStatus,
   isInfoCard,
@@ -295,14 +296,22 @@ function renderGroup(screenId, blocks, subsection, rows) {
   // Shown once above the rows; a status the group's note already states is left to the note.
   const sharedAbove = shared.filter((f) => !(f.key === 'status' && noteSaysStatus(blocks, f.value)));
   let sharedShown = false;
-  for (const block of blocks) {
+  for (const block of branchChains(blocks)) {
     if (block.type === 'prose') {
       group.append(renderProse(block));
       continue;
     }
-    if (!isInfoCard(block) && sharedAbove.length && !sharedShown) {
+    if ((block.type === 'chain' || !isInfoCard(block)) && sharedAbove.length && !sharedShown) {
       group.append(renderShared(sharedAbove));
       sharedShown = true;
+    }
+    if (block.type === 'chain') {
+      const row = renderChain(block, shared);
+      const ids = block.branches.map((b) => b.entry.id);
+      for (const id of ids) rows.set(id, row);
+      wireRow(row, screenId, ids);
+      group.append(row);
+      continue;
     }
     const node = renderEntry(block, { shared, routable: true, logoSlot });
     const row = node.matches('details') ? node : node.querySelector(':scope > details.row');
@@ -313,6 +322,32 @@ function renderGroup(screenId, blocks, subsection, rows) {
     group.append(node);
   }
   return group;
+}
+
+// One row for a shop's branches: its name, logo and status, then each branch and its map.
+function renderChain(chain, shared) {
+  const first = rowParts(chain.branches[0].entry, shared);
+  const name = h('h3', { class: 'row-name' }, chain.name);
+  const head = h(
+    'summary',
+    { class: 'row-head' },
+    h('span', { class: 'row-title' }, first.logo ? h('span', { class: 'row-named' }, renderLogo(first.logo, 'row-logo'), name) : name, first.status ? renderStatus(first.status) : null),
+    h('span', { class: 'row-summary' }, `${chain.branches.length} branches`),
+  );
+  const body = h('div', { class: 'row-body' });
+  for (const { entry, label } of chain.branches) {
+    const parts = rowParts(entry, shared);
+    body.append(
+      h(
+        'div',
+        { class: 'branch', id: `entry-${entry.id}`, 'data-entry-id': entry.id },
+        // Reads as the full name, "ParknShop (near campus)"; shows as "near campus".
+        h('h4', { class: 'branch-name' }, h('span', { class: 'visually-hidden' }, `${chain.name} (`), h('span', { class: 'branch-label' }, label), h('span', { class: 'visually-hidden' }, ')')),
+        renderLink(parts.link),
+      ),
+    );
+  }
+  return h('details', { class: 'row row-chain' }, head, body);
 }
 
 // The card that opens a group's page: just its name, so the screen reads at a glance.
@@ -625,9 +660,12 @@ function renderLegend(entries) {
 // ——— Routing: screens, opened rows and the Back button ———
 
 // Opening a row gives it its own address, so the phone's Back button closes it.
-function wireRow(row, screenId, entryId) {
+// A row of branches answers to every branch's address, and opens under the first.
+function wireRow(row, screenId, entryIds) {
+  const ids = [entryIds].flat();
+  const entryId = ids[0];
   row.addEventListener('toggle', () => {
-    const inAddress = view.current.screen === screenId && view.current.entry === entryId;
+    const inAddress = view.current.screen === screenId && ids.includes(view.current.entry);
     if (row.open && !inAddress) {
       const address = routeFor(screenId, entryId);
       if (view.current.entry) {
