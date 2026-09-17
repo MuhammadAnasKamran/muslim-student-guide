@@ -73,6 +73,12 @@ async function start() {
   const onScroll = () => appbar.classList.toggle('appbar-raised', window.scrollY > 4);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+  // Text reflows when the phone rotates or the text size changes, so the status column is re-measured.
+  let resizeFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => alignStatuses(view.current.screen ? view.screens.get(view.current.screen).node : view.home.results));
+  });
 
   history.scrollRestoration = 'manual';
   backButton.addEventListener('click', goBack);
@@ -209,6 +215,7 @@ function runSearch() {
   );
   menu.hidden = true;
   results.hidden = total === 0;
+  alignStatuses(results);
   empty.hidden = total > 0;
   count.textContent = total === 0 ? 'No results' : `${total} ${total === 1 ? 'result' : 'results'}`;
   emptyTitle.textContent = `Nothing matches “${input.value.trim()}”.`;
@@ -397,6 +404,19 @@ function renderShared(shared) {
     else for (const text of splitTags(value)) node.append(renderChip({ text }));
   }
   return node;
+}
+
+// Every status in a group takes the width of the group's longest label, so the dots and
+// words start in one column down the list. Measured per group, so one long label in
+// another group doesn't squeeze these names. Only a visible screen can be measured.
+function alignStatuses(root) {
+  if (!root || root.hidden) return;
+  for (const group of root.querySelectorAll('.group')) {
+    const labels = [...group.querySelectorAll('.row-title > .status')];
+    group.style.removeProperty('--status-width');
+    const widest = Math.max(0, ...labels.map((label) => Math.ceil(label.getBoundingClientRect().width)));
+    if (widest) group.style.setProperty('--status-width', `${widest}px`);
+  }
 }
 
 // A coloured dot and a word: the word carries the meaning, so colour is never alone.
@@ -643,6 +663,7 @@ function showScreen(screenId, first) {
 
   const next = screenId ? view.screens.get(screenId) : null;
   (next?.node ?? view.home.node).hidden = false;
+  alignStatuses(next?.node);
   backButton.hidden = !next;
   title.textContent = next ? next.title : view.meta.title;
   document.title = next ? [next.title, next.parentTitle, view.meta.title].filter(Boolean).join(' · ') : view.meta.title;

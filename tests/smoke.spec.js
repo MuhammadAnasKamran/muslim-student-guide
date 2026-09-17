@@ -266,6 +266,23 @@ test('WhatsApp group links carry the WhatsApp glyph, and only they do', async ({
   expect(await response.text()).not.toMatch(/<script|href=/i);
 });
 
+test('halal status dots and labels line up in one column in every group', async ({ page }) => {
+  const { screens } = load();
+  const problems = [];
+  for (const { id, title } of screens) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${id}`);
+    await expect(screenView(page, id)).toBeVisible();
+    const groups = await screenView(page, id).locator('.group').evaluateAll((all) =>
+      all.map((group) => [...group.querySelectorAll('.row-title > .status')].filter((l) => l.checkVisibility()).map((l) => Math.round(l.getBoundingClientRect().left))),
+    );
+    for (const lefts of groups) {
+      if (new Set(lefts).size > 1) problems.push(`${title}: status labels start at ${[...new Set(lefts)].join(', ')}px`);
+    }
+  }
+  expect(problems).toEqual([]);
+});
+
 test('washroom types line up in the same column on every floor, and fit on a phone', async ({ page }) => {
   await page.goto('/#/muslim-friendly-washrooms');
   const columns = await page.locator('[data-screen="muslim-friendly-washrooms"] .washroom').evaluateAll((items) => {
