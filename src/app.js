@@ -407,11 +407,13 @@ function renderChip(chip) {
   return h('span', { class: chip.muted ? 'chip chip-muted' : 'chip' }, chip.text);
 }
 
-function renderLink({ href, text, host, map }) {
+function renderLink({ href, text, host, map, whatsapp }) {
   return h(
     'a',
     { class: 'entry-link', href, rel: 'noopener', target: '_blank' },
     map ? mapPin() : null,
+    // The WhatsApp glyph, unmodified and served from this site (src/icons/whatsapp.svg).
+    whatsapp ? h('img', { class: 'link-icon', src: 'icons/whatsapp.svg', alt: '', width: '24', height: '24' }) : null,
     h('span', { class: 'link-lines' }, h('span', { class: 'link-text' }, text), h('span', { class: 'link-host' }, host)),
     h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
   );

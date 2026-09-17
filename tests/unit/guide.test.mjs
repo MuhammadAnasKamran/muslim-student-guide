@@ -145,6 +145,8 @@ test('only Google Maps links are marked as maps, so only they get the pin', () =
   assert.equal(linkText('https://play.google.com/store/apps/details?id=x').map, false);
   assert.equal(linkText('https://www.google.com/search?q=x').map, false);
   assert.equal(linkText('https://chat.whatsapp.com/x').map, false);
+  assert.equal(linkText('https://chat.whatsapp.com/x').whatsapp, true);
+  assert.equal(linkText('https://maps.app.goo.gl/x').whatsapp, false);
 });
 
 test('a photo shows on the row with alt text, and its file name is not searchable', () => {

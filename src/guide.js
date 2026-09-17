@@ -155,12 +155,14 @@ export function linkText(href, label) {
   const host = hostname.replace(/^www\./, '');
   // Only a Google Maps address gets the map pin: play.google.com is not a map.
   const map = host === 'maps.app.goo.gl' || (/(^|\.)google\.com$/.test(host) && !host.startsWith('play.') && pathname.startsWith('/maps'));
-  if (label) return { text: label, host, map };
-  if (map) return { text: 'Open in Google Maps', host, map };
-  if (host === 'chat.whatsapp.com') return { text: 'Join the WhatsApp group', host, map };
-  if (host === 'play.google.com') return { text: 'Open in Google Play', host, map };
-  if (pathname.toLowerCase().endsWith('.pdf')) return { text: 'Open the PDF', host, map };
-  return { text: 'Visit the website', host, map };
+  // WhatsApp group links carry the WhatsApp glyph, so students know the app it opens.
+  const whatsapp = host === 'chat.whatsapp.com';
+  if (label) return { text: label, host, map, whatsapp };
+  if (map) return { text: 'Open in Google Maps', host, map, whatsapp };
+  if (whatsapp) return { text: 'Join the WhatsApp group', host, map, whatsapp };
+  if (host === 'play.google.com') return { text: 'Open in Google Play', host, map, whatsapp };
+  if (pathname.toLowerCase().endsWith('.pdf')) return { text: 'Open the PDF', host, map, whatsapp };
+  return { text: 'Visit the website', host, map, whatsapp };
 }
 
 // One home-menu button per published `#` section, in content.md order.

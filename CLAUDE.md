@@ -135,6 +135,9 @@ The logic lives in `src/guide.js`.
   Add photos only with `node scripts/add-photo.mjs <file> <name>`, which strips hidden
   metadata (GPS location, camera details, AI provenance). Only publish a photo MUSA took or
   has permission to use: the repo is public.
+- WhatsApp group links carry the WhatsApp glyph from `src/icons/whatsapp.svg` (public domain,
+  Wikimedia Commons "WhatsApp Logo green.svg"). Use it unmodified, in its green, never larger
+  than the link text, per WhatsApp's brand rules.
 - Map links carry a pin icon drawn in the page. Never load map images from a third party,
   and never build a map URL that isn't in `content.md`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
@@ -163,6 +166,7 @@ src/
   index.html
   background.jpg        background photograph
   photos/               entry photos, named in content.md
+  icons/                brand glyphs for link buttons (WhatsApp)
   app.js                home menu, screens, rows, search, Back button
   guide.js              how entries render; shared with the tests
   styles.css

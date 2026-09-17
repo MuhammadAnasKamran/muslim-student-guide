@@ -87,7 +87,7 @@ test('every entry in content.json is on its screen with its name, facts and link
       for (const { key, value } of entry.fields) {
         if (key === 'status' || key === 'jummah') continue;
         if (key === 'photo') {
-          const src = await card.locator('.row-head img.row-photo').getAttribute('src');
+          const src = await card.locator('img.row-photo').getAttribute('src');
           if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);
         } else if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
@@ -235,6 +235,18 @@ test('map links carry a pin icon drawn in the page', async ({ page }) => {
   expect(pinned.filter((href) => !/^https:\/\/(maps\.app\.goo\.gl|(www\.)?google\.com\/maps)\//.test(href)), 'only map links carry the pin').toEqual([]);
   const external = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).host).filter((h) => h !== location.host));
   expect(external, 'the page must not load anything from a third party').toEqual([]);
+});
+
+test('WhatsApp group links carry the WhatsApp glyph, and only they do', async ({ page }) => {
+  const { links } = load();
+  const groups = [...links].filter((href) => href.startsWith('https://chat.whatsapp.com/'));
+  expect(groups.length).toBeGreaterThan(0);
+  await openHome(page);
+  const marked = await page.$$eval('.entry-link', (as) => as.filter((a) => a.querySelector('img.link-icon[src="icons/whatsapp.svg"]')).map((a) => a.getAttribute('href')));
+  expect(marked.sort()).toEqual(groups.sort());
+  const response = await page.request.get('/icons/whatsapp.svg');
+  expect(response.ok()).toBe(true);
+  expect(await response.text()).not.toMatch(/<script|href=/i);
 });
 
 test('pressing a card keeps its rounded corners, and buttons match the card shape', async ({ page }) => {

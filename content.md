@@ -60,6 +60,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - arrangement: Men's & women's areas
 - tags: 4 daily prayers · Friday khutbah
 - prayers: Dhuhr · Asr · Maghrib · Isha
+- photo: z302a.jpg
 - link: https://mosque-prayer-display-screen-cyan.vercel.app
 - link-label: Live prayer times
 
@@ -68,6 +69,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - arrangement: Men's & women's areas
 - tags: 4 daily prayers
 - prayers: Dhuhr · Asr · Maghrib · Isha
+- photo: pq502a.jpg
 
 ## Hall Prayer Rooms
 
