@@ -464,12 +464,13 @@ test('an app card shows its logo beside its name', async ({ page }) => {
   expect(image.x + image.width).toBeLessThanOrEqual(name.x);
 });
 
-test('Live prayer times shows on the Z302a card without tapping', async ({ page }) => {
-  const { entries } = load();
-  const labelled = entries.filter((e) => e.fields.some((f) => f.key === 'link-label'));
-  expect(labelled.length).toBeGreaterThan(0);
-  await page.goto('/#/prayer-facilities');
-  for (const entry of labelled) {
+test('a labelled link, like Live prayer times, shows on its card without tapping', async ({ page }) => {
+  const { screens } = load();
+  const labelled = screens.flatMap(({ id, entries }) => entries.filter((e) => e.fields.some((f) => f.key === 'link-label')).map((entry) => ({ id, entry })));
+  expect(labelled.map(({ entry }) => entry.id)).toContain('z302a');
+  for (const { id, entry } of labelled) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${id}`);
     const href = entry.fields.find((f) => f.key === 'link').value;
     const card = page.locator(`.row-card:has(> [data-entry-id="${entry.id}"])`);
     await expect(card.locator(`:scope > .row-link a[href="${href}"]`)).toBeVisible();
@@ -509,7 +510,13 @@ test.describe('copy address', () => {
       }
       await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
     }
-    test.skip(!withCopy, 'no entry has an address');
+    if (!withCopy) {
+      // No entry has an address at all: give a row without a link one, in a served copy.
+      withCopy = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry }))).find(({ entry }) => !entry.fields.some((f) => ['link', 'note'].includes(f.key)));
+      withCopy.entry = { ...withCopy.entry, fields: [...withCopy.entry.fields, { key: 'address', value: 'Shop 1–2, G/F, 1 Test Street, Hung Hom' }] };
+      for (const block of walk(doc)) if (block.id === withCopy.entry.id) block.fields = withCopy.entry.fields;
+      await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
+    }
 
     const address = withCopy.entry.fields.find((f) => f.key === 'address').value;
     await page.goto(`/#/${withCopy.screenId}/${withCopy.entry.id}`);

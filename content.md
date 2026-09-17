@@ -197,62 +197,49 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 # Halal Groceries
 
-## Tips
-
-### A general rule
-- note: Stock changes often. Check each pack for a halal logo.
-
-### Halal bread
-- note: Garden sandwich bread is certified. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
-- link: https://www.garden.com.hk/en/product/hong-kong/retail/bread/sandwich-bread/
-
 ## Delivery
 
 ### Waqas Store
+- status: unverified
 - tags: All groceries
 - delivery: Free delivery to both halls
 - link: https://chat.whatsapp.com/Bkfea00tZUdBsbP7dyuhM9
+- link-label: Join the WhatsApp group
 
-## Shops
+## Supermarkets
 
 ### ParknShop (near campus)
-- address: Shop 729–733, Level 7, Metropolis Mall, 6 Metropolis Drive, Hung Hom
 - status: check-packaging
-- tags: Certified items · Halal bread
 - link: https://maps.app.goo.gl/yF8Y3U2ATM7XPgvEA
 
 ### ParknShop (near Homantin Halls)
-- address: Shop 1–2, LG/F, Ka Yee Lau, Ka Wai Chuen, Ma Tau Wai Road, Hung Hom
 - status: check-packaging
-- tags: Certified items · Halal bread
 - link: https://maps.app.goo.gl/XvX6UypsnyTqaWLs9
 
 ### ParknShop (Whampoa)
-- address: Shop 26, G/F, The Whampoa Site 3, 3 Whampoa Street, Hung Hom
 - status: check-packaging
-- tags: Certified items · Halal bread
 - link: https://maps.app.goo.gl/VP4dTyGSyXyiVi7v9
 
 ### Taste
 - status: certified-section
-- tags: Halal section
-- link: https://maps.app.goo.gl/CzzknMa8QMHbeNP16
-- TODO: branch address
+- link: https://maps.app.goo.gl/J1KLcg6d8qdzFrtB6?g_st=aw
 
 ### Wellcome
 - status: check-packaging
-- tags: Certified items · Halal bread
-- link: https://maps.app.goo.gl/McTCgPdHfdwhYRB48
-- TODO: branch address
+- link: https://www.google.com/maps/place/Wellcome/@22.3057914,114.1865303,17z/data=!3m1!4b1!4m6!3m5!1s0x340400e0a8c5c933:0x60a6e0d5b33f4b73!8m2!3d22.3057914!4d114.1865303!16s%2Fg%2F1tlnb0nt!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDkxNC4wIKXMDSoASAFQAw%3D%3D
 
 ### DS Groceries
-- address: Shop 18B, B/F, United Building (Lung To Court), 1–7 Wu Kwong Street, Hung Hom
 - status: check-packaging
-- tags: Certified items
 - link: https://maps.app.goo.gl/KyaoL41JAT5GJazu7
 
 ### Ka Hing Supermarket
-- address: Shop 17G1B, B/F, Luen Shing Building, Po Loi Street, Hung Hom
 - status: check-packaging
-- tags: Certified snacks · No halal meat
+- tags: Certified snacks
+- warning: No halal meat
 - link: https://maps.app.goo.gl/ZbyruHjwpNYpqduW7
+
+## Tips
+
+### Halal bread
+- note: Garden sandwich bread is certified. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
+- link: https://www.garden.com.hk/en/product/hong-kong/retail/bread/sandwich-bread/
