@@ -110,38 +110,38 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ## Campus
 
-Hours change often, so they are not listed.
-
 ### Halal by The Forest
 - where: Z Cafe, Z Core
 - status: certified
+- tags: All items halal certified
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/z-cafe/
 
 ### The Forest — VA Student Canteen
 - where: G/F, VA Student Canteen
 - status: certified-section
-- price: ≈HK$50
 - tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
 - warning: Only these 3 meals are halal. Other dishes are not.
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/va-student-canteen/
 
-### Pacific Coffee
-- where: X Cafe, X Core
-- status: check-packaging
-- tags: Some items halal certified · Check before buying
-- link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/x-cafe/
-
 ### Campus vending machine
 - where: VA210
 - status: certified
-- tags: Snacks only · Halal logo on machine
+- tags: All snacks halal certified · Halal logo on machine
+- TODO: official name of this vending machine
+
+### Pacific Coffee
+- where: X Cafe, X Core
+- status: check-packaging
+- tags: Halal certification on some products
+- link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/x-cafe/
+- TODO: confirm Pacific Coffee is the X Cafe outlet
 
 ### 7-Eleven
 - where: Campus-wide
 - status: check-packaging
-- tags: Halal items available · Garden sandwich bread certified
-- note: Range changes. Check each pack for a halal logo.
+- tags: Halal certification on some products
 - link: https://www.polyu.edu.hk/fo/visitors/campus-wide-facilities/
+- TODO: exact location (a VA room number, to be verified)
 - TODO: list the specific certified instant noodles, juices and snacks if anyone verifies them
 
 ## Halls

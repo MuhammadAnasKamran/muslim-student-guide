@@ -6,7 +6,7 @@
 export const STATUS_LABELS = {
   certified: { label: 'Halal certified', meaning: 'Holds halal certification.' },
   'certified-section': { label: 'Certified section only', meaning: 'Only part of the shop or menu is certified.' },
-  'check-packaging': { label: 'Check packaging', meaning: 'Some products are certified. Look for the halal logo.' },
+  'check-packaging': { label: 'Check packaging before buying', meaning: 'Some products are certified. Look for the halal logo.' },
   unverified: { label: 'Community-known', meaning: 'Community-known. Not endorsed or checked by MUSA.' },
 };
 
