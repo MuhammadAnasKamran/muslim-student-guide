@@ -41,6 +41,6 @@ test('every published photo has no hidden metadata, is small, and belongs to an 
     const found = jpegSegments(bytes).filter((s) => isMetadata(s.marker)).map((s) => s.marker.toString(16));
     assert.deepEqual(found, [], `${name} still carries metadata; add it with scripts/add-photo.mjs`);
     assert.ok(bytes.length <= MAX_BYTES, `${name} is ${bytes.length} bytes; keep photos under ${MAX_BYTES} for phones`);
-    assert.match(content, new RegExp(`^- photo: ${name.replace('.', '\\.')}$`, 'm'), `${name} is not used by any entry in content.md`);
+    assert.match(content, new RegExp(`^- (photo|logo): ${name.replace('.', '\\.')}$`, 'm'), `${name} is not used by any entry in content.md`);
   }
 });

@@ -499,6 +499,35 @@ main {
   gap: 0.25rem 0.5rem;
 }
 
+.row-named {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.row-logo {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+/* A shop without a logo: a plain drawn basket, so its name lines up with the others. */
+.row-logo-blank {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.row-logo-blank .menu-icon {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
 .row-title > .status {
   flex: none;
   width: var(--status-width, auto);

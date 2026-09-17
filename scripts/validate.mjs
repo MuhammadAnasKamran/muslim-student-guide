@@ -44,11 +44,12 @@ export function validate(doc, { photoExists = (name) => existsSync(path.join(PHO
       if (field['link-label'] && !field.link) {
         error(field['link-label'].line, `${where} has "link-label" but no "link".`);
       }
-      if (field.photo) {
-        if (!/^[a-z0-9-]+\.jpg$/.test(field.photo.value)) {
-          error(field.photo.line, `${where} photo "${field.photo.value}" must be a file name like "z302a.jpg". Add it with scripts/add-photo.mjs.`);
-        } else if (!photoExists(field.photo.value)) {
-          error(field.photo.line, `${where} photo "${field.photo.value}" is not in src/photos/. Add it with scripts/add-photo.mjs.`);
+      for (const key of ['photo', 'logo']) {
+        if (!field[key]) continue;
+        if (!/^[a-z0-9-]+\.jpg$/.test(field[key].value)) {
+          error(field[key].line, `${where} ${key} "${field[key].value}" must be a file name like "z302a.jpg". Add it with scripts/add-photo.mjs.`);
+        } else if (!photoExists(field[key].value)) {
+          error(field[key].line, `${where} ${key} "${field[key].value}" is not in src/photos/. Add it with scripts/add-photo.mjs.`);
         }
       }
       if (field.washrooms) {

@@ -93,12 +93,12 @@ test('every entry in content.json is on its screen with its name, facts and link
           if (floors.join(' · ') !== value) problems.push(`${entry.name}: washrooms show "${floors.join(' · ')}", not "${value}"`);
           continue;
         }
-        if (key === 'photo') {
-          const img = (await card.evaluate((el) => el.classList.contains('info-card')))
-            ? card.locator('.info-head img.info-logo')
-            : page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large`);
-          const src = await img.first().getAttribute('src', { timeout: 2000 });
-          if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);
+        if (key === 'logo') {
+          const src = await card.locator('img.info-logo, img.row-logo').first().getAttribute('src', { timeout: 2000 });
+          if (src !== `photos/${value}`) problems.push(`${entry.name}: logo ${value} not beside its name`);
+        } else if (key === 'photo') {
+          const src = await page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large`).first().getAttribute('src', { timeout: 2000 });
+          if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not in its drop-down`);
         } else if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
         } else if (key === 'tags') {
@@ -471,14 +471,36 @@ test('a photo waits in the drop-down, not on the closed row, and loads from this
   await expect.poll(() => photo.evaluate((img) => img.complete && img.naturalWidth > 0), { message: 'the photo file loads' }).toBe(true);
 });
 
+test('shop logos sit beside their names, and load', async ({ page }) => {
+  const { screens } = load();
+  const shops = screens.flatMap(({ id, entries }) => entries.filter((e) => e.fields.some((f) => f.key === 'logo') && !e.fields.every((f) => ['note', 'link', 'link-label', 'logo'].includes(f.key))).map((entry) => ({ id, entry })));
+  expect(shops.length).toBeGreaterThan(0);
+  for (const { id, entry } of shops) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${id}`);
+    const row = screenView(page, id).locator(`[data-entry-id="${entry.id}"]`);
+    const logo = row.locator('.row-title img.row-logo');
+    await expect(logo).toBeVisible();
+    await expect.poll(() => logo.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+    const [image, name] = await Promise.all([logo.boundingBox(), row.locator('h3').boundingBox()]);
+    expect(image.x + image.width, `${entry.name}: logo left of the name`).toBeLessThanOrEqual(name.x);
+  }
+  // Every name in a group with logos starts in the same place, logo or not.
+  const { id } = shops[0];
+  await page.goto(`/#/${id}`);
+  const group = screenView(page, id).locator('.group', { has: page.locator('img.row-logo') }).first();
+  const starts = await group.locator('.row-name').evaluateAll((names) => [...new Set(names.map((n) => Math.round(n.getBoundingClientRect().left)))]);
+  expect(starts).toHaveLength(1);
+});
+
 test('an app card shows its logo beside its name', async ({ page }) => {
   const { doc, screens } = load();
-  const cards = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry }))).filter(({ entry }) => entry.fields.every((f) => ['note', 'link', 'link-label', 'photo'].includes(f.key)));
-  let target = cards.find(({ entry }) => entry.fields.some((f) => f.key === 'photo'));
+  const cards = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry }))).filter(({ entry }) => entry.fields.every((f) => ['note', 'link', 'link-label', 'logo'].includes(f.key)));
+  let target = cards.find(({ entry }) => entry.fields.some((f) => f.key === 'logo'));
   if (!target) {
     // No app card has its logo yet: give one the background photo in a served copy.
     target = cards.find(({ entry }) => entry.fields.some((f) => f.key === 'link'));
-    for (const block of walk(doc)) if (block.id === target.entry.id) block.fields.push({ key: 'photo', value: '../background.jpg' });
+    for (const block of walk(doc)) if (block.id === target.entry.id) block.fields.push({ key: 'logo', value: '../background.jpg' });
     await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
   }
   await page.goto(`/#/${target.screenId}`);

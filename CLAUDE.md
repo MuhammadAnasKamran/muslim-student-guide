@@ -139,7 +139,9 @@ The logic lives in `src/guide.js`.
   group shares one, the badge sits above the group, still visible without tapping — unless
   the group's `>` note already contains the status word ("Community-known ..."), which then
   says it once.
-- `photo` names a file in `src/photos/` and shows on the right of the row, without tapping.
+- `logo` names a file in `src/photos/` and shows as a small square beside the name, on shop rows
+  and app cards. Use the brand's own logo, only to identify it.
+- `photo` names a file in `src/photos/` and shows full width in the row's drop-down.
   Add photos only with `node scripts/add-photo.mjs <file> <name>`, which strips hidden
   metadata (GPS location, camera details, AI provenance). Only publish a photo MUSA took or
   has permission to use: the repo is public.

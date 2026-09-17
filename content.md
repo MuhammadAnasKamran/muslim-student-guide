@@ -204,26 +204,32 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ### ParknShop (near campus)
 - status: check-packaging
+- logo: logo-parknshop.jpg
 - link: https://maps.app.goo.gl/yF8Y3U2ATM7XPgvEA
 
 ### ParknShop (near Homantin Halls)
 - status: check-packaging
+- logo: logo-parknshop.jpg
 - link: https://maps.app.goo.gl/XvX6UypsnyTqaWLs9
 
 ### ParknShop (Whampoa)
 - status: check-packaging
+- logo: logo-parknshop.jpg
 - link: https://maps.app.goo.gl/VP4dTyGSyXyiVi7v9
 
 ### Taste
 - status: check-packaging
+- logo: logo-taste.jpg
 - link: https://maps.app.goo.gl/J1KLcg6d8qdzFrtB6?g_st=aw
 
 ### Wellcome
 - status: check-packaging
+- logo: logo-wellcome.jpg
 - link: https://www.google.com/maps/place/Wellcome/@22.3057914,114.1865303,17z/data=!3m1!4b1!4m6!3m5!1s0x340400e0a8c5c933:0x60a6e0d5b33f4b73!8m2!3d22.3057914!4d114.1865303!16s%2Fg%2F1tlnb0nt!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDkxNC4wIKXMDSoASAFQAw%3D%3D
 
 ### DS Groceries
 - status: check-packaging
+- logo: logo-dsgroceries.jpg
 - link: https://maps.app.goo.gl/KyaoL41JAT5GJazu7
 
 ### Ka Hing Supermarket

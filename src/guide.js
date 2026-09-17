@@ -29,7 +29,7 @@ export const PRAYER_KEYS = ['prayers', 'jummah'];
 // sits on the right of the row, visible without tapping.
 // `warning` is a caveat that must be read before acting, like "only these meals
 // are halal": it shows on the row in amber and is never folded away.
-export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning', 'photo', 'washrooms'];
+export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning', 'photo', 'logo', 'washrooms'];
 
 // Washroom types, in the order they show on each floor.
 export const WASHROOM_TYPES = { male: 'Male', female: 'Female', accessible: 'Accessible' };
@@ -59,12 +59,12 @@ export const FIELD_LABELS = {
 };
 
 // An entry made only of these renders as an always-open card (tips, apps, lists).
-// On an info card, `photo` is the app or service logo, shown beside the name.
-const INFO_KEYS = ['note', 'link', 'link-label', 'photo'];
+// `logo` is a shop's or app's logo, shown beside the name.
+const INFO_KEYS = ['note', 'link', 'link-label', 'logo'];
 
 // Chips belong to their own row; a status shared by every row in a group is
 // shown once above them instead.
-const NEVER_SHARED = new Set(['washrooms', 'photo', 'link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
+const NEVER_SHARED = new Set(['washrooms', 'photo', 'logo', 'link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
 
 // A `tags` value is several chips: "South Asian meals · Several options daily".
 export function splitTags(value) {
@@ -157,6 +157,8 @@ export function rowParts(entry, shared = []) {
     chips,
     warnings: fields.filter((f) => f.key === 'warning').map((f) => f.value),
     washrooms: map.washrooms ? parseWashrooms(map.washrooms) : null,
+    // Shops share a logo but each row still shows it, so it is never lifted above the group.
+    logo: map.logo ? { src: `photos/${map.logo}` } : null,
     photo: map.photo ? { src: `photos/${map.photo}`, alt: `Photo of ${entry.name}` } : null,
     summary,
     prayers: map.prayers || map.jummah ? { held: map.prayers ? splitTags(map.prayers) : [], jummah: map.jummah ? map.jummah === 'yes' : null } : null,
@@ -230,7 +232,7 @@ export function routeFor(screen, entry) {
 export function searchText({ entry, section, subsection }) {
   const parts = [section.title, subsection?.title, entry.name, statusOf(entry)?.label];
   for (const { key, value } of entry.fields) {
-    if (key === 'link' || key === 'status' || key === 'photo') continue;
+    if (key === 'link' || key === 'status' || key === 'photo' || key === 'logo') continue;
     // The row reads "Jummah", so a search for "jummah" should find it.
     if (key === 'jummah') parts.push(value === 'yes' ? 'Jummah' : '');
     else parts.push(value);

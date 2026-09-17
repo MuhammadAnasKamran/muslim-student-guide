@@ -283,6 +283,8 @@ function renderGroup(screenId, blocks, subsection, rows) {
     group.append(h('h2', { class: 'group-title', id }, subsection.title));
   }
 
+  // When some shops in a group have a logo, the others get a plain tile so names line up.
+  const logoSlot = entriesIn(blocks).some((e) => !isInfoCard(e) && e.fields.some((f) => f.key === 'logo'));
   // Shown once above the rows; a status the group's note already states is left to the note.
   const sharedAbove = shared.filter((f) => !(f.key === 'status' && noteSaysStatus(blocks, f.value)));
   let sharedShown = false;
@@ -295,7 +297,7 @@ function renderGroup(screenId, blocks, subsection, rows) {
       group.append(renderShared(sharedAbove));
       sharedShown = true;
     }
-    const node = renderEntry(block, { shared, routable: true });
+    const node = renderEntry(block, { shared, routable: true, logoSlot });
     const row = node.matches('details') ? node : node.querySelector(':scope > details.row');
     if (row) {
       rows.set(block.id, row);
@@ -342,7 +344,7 @@ function renderRuns(runs) {
 
 // A row in a screen (routable, with shared facts hidden) or in search results
 // (self-contained, labelled with its heading).
-function renderEntry(entry, { shared = [], routable = false, context = null } = {}) {
+function renderEntry(entry, { shared = [], routable = false, context = null, logoSlot = false } = {}) {
   const id = routable ? `entry-${entry.id}` : null;
   if (isInfoCard(entry)) return renderInfoCard(entry, id, context);
 
@@ -350,7 +352,15 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
   // The name and the halal status share the first line: name on the left, status on the right.
   const head = [
     context ? h('span', { class: 'row-context' }, context) : null,
-    h('span', { class: 'row-title' }, h('h3', { class: 'row-name' }, entry.name), parts.status ? renderStatus(parts.status) : null),
+    h(
+      'span',
+      { class: 'row-title' },
+      // The logo sits beside the name it belongs to, so it needs no alt text of its own.
+      parts.logo || logoSlot
+        ? h('span', { class: 'row-named' }, parts.logo ? renderLogo(parts.logo, 'row-logo') : h('span', { class: 'row-logo row-logo-blank' }, menuIcon('shop')), h('h3', { class: 'row-name' }, entry.name))
+        : h('h3', { class: 'row-name' }, entry.name),
+      parts.status ? renderStatus(parts.status) : null,
+    ),
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
     parts.prayers ? renderPrayers(parts.prayers) : null,
@@ -382,15 +392,14 @@ function renderRow(entry, id, parts, head) {
 }
 
 function renderInfoCard(entry, id, context) {
-  const { link, photo } = rowParts(entry);
+  const { link, logo } = rowParts(entry);
   const note = entry.fields.find((f) => f.key === 'note')?.value;
   const title = h('h3', { class: 'info-title' }, entry.name);
   return h(
     'div',
     { class: 'info-card', id, 'data-entry-id': entry.id },
     context ? h('span', { class: 'row-context' }, context) : null,
-    // The logo sits beside the name it belongs to, so it needs no alt text of its own.
-    photo ? h('span', { class: 'info-head' }, h('img', { class: 'info-logo', src: photo.src, alt: '', width: '44', height: '44', decoding: 'async' }), title) : title,
+    logo ? h('span', { class: 'info-head' }, renderLogo(logo, 'info-logo'), title) : title,
     note ? h('p', { class: 'info-note' }, note) : null,
     link ? renderLink(link) : null,
   );
@@ -418,6 +427,10 @@ function alignStatuses(root) {
     const widest = Math.max(0, ...labels.map((label) => Math.ceil(label.getBoundingClientRect().width)));
     if (widest) group.style.setProperty('--status-width', `${widest}px`);
   }
+}
+
+function renderLogo({ src }, className) {
+  return h('img', { class: className, src, alt: '', width: '44', height: '44', decoding: 'async' });
 }
 
 // A coloured dot and a word: the word carries the meaning, so colour is never alone.
