@@ -374,13 +374,15 @@ function renderRow(entry, id, parts, head) {
 }
 
 function renderInfoCard(entry, id, context) {
-  const { link } = rowParts(entry);
+  const { link, photo } = rowParts(entry);
   const note = entry.fields.find((f) => f.key === 'note')?.value;
+  const title = h('h3', { class: 'info-title' }, entry.name);
   return h(
     'div',
     { class: 'info-card', id, 'data-entry-id': entry.id },
     context ? h('span', { class: 'row-context' }, context) : null,
-    h('h3', { class: 'info-title' }, entry.name),
+    // The logo sits beside the name it belongs to, so it needs no alt text of its own.
+    photo ? h('span', { class: 'info-head' }, h('img', { class: 'info-logo', src: photo.src, alt: '', width: '44', height: '44', decoding: 'async' }), title) : title,
     note ? h('p', { class: 'info-note' }, note) : null,
     link ? renderLink(link) : null,
   );

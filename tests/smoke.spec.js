@@ -94,7 +94,10 @@ test('every entry in content.json is on its screen with its name, facts and link
           continue;
         }
         if (key === 'photo') {
-          const src = await page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large`).first().getAttribute('src');
+          const img = (await card.evaluate((el) => el.classList.contains('info-card')))
+            ? card.locator('.info-head img.info-logo')
+            : page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large`);
+          const src = await img.first().getAttribute('src', { timeout: 2000 });
           if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);
         } else if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
@@ -440,6 +443,25 @@ test('a photo waits in the drop-down, not on the closed row, and loads from this
   await expect(photo).toBeVisible();
   await expect(photo).toHaveAttribute('alt', `Photo of ${target.entry.name}`);
   await expect.poll(() => photo.evaluate((img) => img.complete && img.naturalWidth > 0), { message: 'the photo file loads' }).toBe(true);
+});
+
+test('an app card shows its logo beside its name', async ({ page }) => {
+  const { doc, screens } = load();
+  const cards = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry }))).filter(({ entry }) => entry.fields.every((f) => ['note', 'link', 'link-label', 'photo'].includes(f.key)));
+  let target = cards.find(({ entry }) => entry.fields.some((f) => f.key === 'photo'));
+  if (!target) {
+    // No app card has its logo yet: give one the background photo in a served copy.
+    target = cards.find(({ entry }) => entry.fields.some((f) => f.key === 'link'));
+    for (const block of walk(doc)) if (block.id === target.entry.id) block.fields.push({ key: 'photo', value: '../background.jpg' });
+    await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
+  }
+  await page.goto(`/#/${target.screenId}`);
+  const card = screenView(page, target.screenId).locator(`.info-card[data-entry-id="${target.entry.id}"]`);
+  const logo = card.locator('.info-head img.info-logo');
+  await expect(logo).toBeVisible();
+  await expect.poll(() => logo.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+  const [image, name] = await Promise.all([logo.boundingBox(), card.locator('h3').boundingBox()]);
+  expect(image.x + image.width).toBeLessThanOrEqual(name.x);
 });
 
 test('Live prayer times shows on the Z302a card without tapping', async ({ page }) => {

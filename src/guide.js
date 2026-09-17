@@ -59,7 +59,8 @@ export const FIELD_LABELS = {
 };
 
 // An entry made only of these renders as an always-open card (tips, apps, lists).
-const INFO_KEYS = ['note', 'link', 'link-label'];
+// On an info card, `photo` is the app or service logo, shown beside the name.
+const INFO_KEYS = ['note', 'link', 'link-label', 'photo'];
 
 // Chips belong to their own row; a status shared by every row in a group is
 // shown once above them instead.

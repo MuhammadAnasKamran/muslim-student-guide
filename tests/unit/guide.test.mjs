@@ -142,6 +142,7 @@ test('a key with no place on screen fails loudly', () => {
 test('entries made of note and link are info cards', () => {
   assert.equal(isInfoCard(entry('Athan Plus', { note: 'Prayer times', link: 'https://play.google.com/x' })), true);
   assert.equal(isInfoCard(entry('Tip', { note: 'Check the pack' })), true);
+  assert.equal(isInfoCard(entry('Athan Plus', { link: 'https://play.google.com/x', photo: 'athan-plus.jpg' })), true, 'a logo keeps it an info card');
   assert.equal(isInfoCard(entry('Shop', { note: 'x', address: 'y' })), false);
 });
 
