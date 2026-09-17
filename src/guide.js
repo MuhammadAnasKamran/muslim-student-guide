@@ -93,7 +93,7 @@ export function hasGroupPages(section) {
   return section.subsections.length > 1 && GROUP_PAGE_SCREENS.some((pattern) => pattern.test(section.title));
 }
 
-// A group page's screen id sits under its section's: "halal-food-near-you/campus".
+// A group page's screen id sits under its section's: "halal-food-groceries/campus".
 export function groupScreenId(section, subsection) {
   return `${section.id}/${subsection.id}`;
 }

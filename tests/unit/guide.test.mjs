@@ -133,7 +133,7 @@ test('a group that is only a link opens it from its card', () => {
 
 test('only the food screen gives each group its own page', () => {
   const withGroups = (title) => ({ title, subsections: [{}, {}] });
-  assert.equal(hasGroupPages(withGroups('Halal Food Near You')), true);
+  assert.equal(hasGroupPages(withGroups('Halal Food & Groceries')), true);
   assert.equal(hasGroupPages(withGroups('Prayer Facilities')), false);
   assert.equal(hasGroupPages({ title: 'Halal Food', subsections: [{}] }), false, 'a single group needs no page of its own');
 });

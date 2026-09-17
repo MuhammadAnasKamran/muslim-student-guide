@@ -608,6 +608,7 @@ const FALLBACK_ICON = ['M5 6.5h14', 'M5 12h14', 'M5 17.5h9'];
 
 // Icons for the group cards on the Halal Food screen, matched on the group's words.
 const GROUP_ICONS = [
+  [/deliver/i, ['M2.5 6.5h11v10h-11Z', 'M13.5 9.5h4l3 3.5v3.5h-7', 'M5.25 18a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0-3.5 0', 'M15 18a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0-3.5 0']],
   [/campus|university/i, ['M3 9 12 4l9 5Z', 'M6 11.5v6', 'M10 11.5v6', 'M14 11.5v6', 'M18 11.5v6', 'M4.5 17.5h15', 'M3 20.5h18']],
   [/hall|residence|dorm/i, ['M3 5.5v14', 'M21 12.5v7', 'M3 12.5h18', 'M3 16h18', 'M5.75 12.5V10.5a1.25 1.25 0 0 1 1.25-1.25h3.5a1.25 1.25 0 0 1 1.25 1.25v2']],
   [/kitchen|home|cook/i, ['M4.5 10.5h15', 'M6 10.5v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7', 'M3 12.5h3', 'M18 12.5h3', 'M10.75 10.5V8.75h2.5v1.75', 'M9 6.5c0-1 1-1.25 1-2.25', 'M14 6.5c0-1 1-1.25 1-2.25']],

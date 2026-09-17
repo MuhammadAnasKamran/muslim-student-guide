@@ -109,7 +109,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ---
 
-# Halal Food Near You
+# Halal Food & Groceries
 
 ## Campus
 
@@ -183,25 +183,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 - link: https://chat.whatsapp.com/LWmReNeQYwHFVJJMLz2yZ9
 - TODO: delivery area
 
-## More in Hong Kong
-
-### Hong Kong Halal Food List (IUHK)
-- logo: logo-iuhk.jpg
-- note: Full Hong Kong halal list by IUHK. Check its date first.
-- link: https://www.iuhk.org/images/Others/Halah-Food/Halal-List_en.pdf
-
----
-
-# Halal Groceries
-
-## Delivery
-
-### Waqas Store
-- status: unverified
-- delivery: Free delivery to both halls
-- link: https://chat.whatsapp.com/Bkfea00tZUdBsbP7dyuhM9
-- link-label: Join the WhatsApp group
-
 ## Supermarkets
 
 ### ParknShop (near campus)
@@ -238,9 +219,22 @@ It will tell you about unknown keys, bad status values, and dead links.
 - status: check-packaging
 - link: https://maps.app.goo.gl/ZbyruHjwpNYpqduW7
 
-## Tips
-
 ### Halal bread
-- note: Garden sandwich bread is certified. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
+- note: Only these 6 Garden sandwich breads are halal certified. Giant Sandwich Bread is not. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
 - photo: garden-sandwich-bread.jpg
 - link: https://www.garden.com.hk/en/product/hong-kong/retail/bread/sandwich-bread/
+
+## Grocery Delivery
+
+### Waqas Store
+- status: unverified
+- delivery: Free delivery to both halls
+- link: https://chat.whatsapp.com/Bkfea00tZUdBsbP7dyuhM9
+- link-label: Join the WhatsApp group
+
+## More in Hong Kong
+
+### Hong Kong Halal Food List (IUHK)
+- logo: logo-iuhk.jpg
+- note: Full Hong Kong halal list by IUHK. Check its date first.
+- link: https://www.iuhk.org/images/Others/Halah-Food/Halal-List_en.pdf

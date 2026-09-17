@@ -159,7 +159,7 @@ The logic lives in `src/guide.js`.
   warns when one is missing). Never load map images from a third party at runtime, and never build
   a map URL that isn't in `content.md`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
-- On long screens (the Halal Food screen, matched on the word "food" in its title) each
+- On long screens (the Halal Food & Groceries screen, matched on the word "food" in its title) each
   `##` group is its own page, opened from a card on that screen, the same way Prayer
   Facilities leads to Z302a. The card shows only the group's name, so the screen reads at a
   glance; statuses and warnings show on the page's rows. A group that is only one note and

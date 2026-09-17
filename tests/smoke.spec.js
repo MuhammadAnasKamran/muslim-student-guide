@@ -256,8 +256,8 @@ test('prayer times, access limits and shared facts show without tapping', async 
 });
 
 test('map links carry a pin icon drawn in the page', async ({ page }) => {
-  await page.goto('/#/halal-groceries');
-  const mapLink = screenView(page, 'halal-groceries').locator('a[href*="maps.app.goo.gl"]').first();
+  await page.goto('/#/halal-food-groceries/supermarkets');
+  const mapLink = screenView(page, 'halal-food-groceries/supermarkets').locator('a[href*="maps.app.goo.gl"]').first();
   await expect(mapLink.locator('svg.link-icon')).toHaveCount(1);
   const pinned = await page.$$eval('.entry-link', (links) => links.filter((a) => a.querySelector('svg.link-icon')).map((a) => a.getAttribute('href')));
   expect(pinned.filter((href) => !/^https:\/\/(maps\.app\.goo\.gl|(www\.)?google\.com\/maps)\//.test(href)), 'only map links carry the pin').toEqual([]);
@@ -572,13 +572,14 @@ test('ParknShop is one row that opens to its three branches, each with a map', a
   const { entries } = load();
   const branches = entries.filter((e) => e.name.startsWith('ParknShop ('));
   expect(branches.length).toBe(3);
-  await page.goto('/#/halal-groceries');
-  const view = screenView(page, 'halal-groceries');
+  const screen = 'halal-food-groceries/supermarkets';
+  await page.goto(`/#/${screen}`);
+  const view = screenView(page, screen);
   const row = view.locator('details.row-chain', { has: page.locator('h3', { hasText: /^ParknShop$/ }) });
   await expect(row).toHaveCount(1);
   await expect(row.locator('.row-summary')).toHaveText('3 branches');
   await row.locator('summary').click();
-  await expect(page).toHaveURL(new RegExp(`#/halal-groceries/${branches[0].id}$`));
+  await expect(page).toHaveURL(new RegExp(`#/${screen}/${branches[0].id}$`));
   for (const branch of branches) {
     const link = branch.fields.find((f) => f.key === 'link').value;
     const item = row.locator(`.branch[data-entry-id="${branch.id}"]`);
@@ -590,10 +591,10 @@ test('ParknShop is one row that opens to its three branches, each with a map', a
 
   // An address to the third branch opens the shop's row.
   await page.goto('about:blank');
-  await page.goto(`/#/halal-groceries/${branches[2].id}`);
+  await page.goto(`/#/${screen}/${branches[2].id}`);
   await expect(row).toHaveAttribute('open', '');
   await page.getByRole('button', { name: 'Back', exact: true }).click();
-  await expect(page.locator('.menu')).toBeVisible();
+  await expect(page.locator('#screen-title')).toHaveText('Halal Food & Groceries');
 });
 
 test.describe('copy address', () => {
