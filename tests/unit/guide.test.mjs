@@ -9,6 +9,7 @@ import {
   directLinkEntry,
   isInfoCard,
   linkText,
+  noteSaysStatus,
   parseWashrooms,
   menuItems,
   parentScreen,
@@ -179,6 +180,13 @@ test('a labelled link stays on the row; an unlabelled one waits in the drop-down
   const plain = rowParts(entry('Cafe', { where: 'Z Core', link: 'https://x.example' }));
   assert.equal(plain.link.onRow, false);
   assert.equal(plain.expandable, true);
+});
+
+test('a group note that already names the shared status stands in for the badge', () => {
+  const note = (text) => ({ type: 'prose', kind: 'blockquote', runs: [{ text }] });
+  assert.equal(noteSaysStatus([note('Community-known halal kitchens, but not endorsed by MUSA.')], 'unverified'), true);
+  assert.equal(noteSaysStatus([note('Not checked by MUSA.')], 'unverified'), false, 'without the word, the badge stays');
+  assert.equal(noteSaysStatus([{ type: 'prose', kind: 'paragraph', runs: [{ text: 'Community-known' }] }], 'unverified'), false, 'only a highlighted note counts');
 });
 
 test('page addresses round-trip', () => {

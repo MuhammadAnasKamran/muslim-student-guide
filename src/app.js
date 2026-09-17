@@ -10,6 +10,7 @@ import {
   formatDate,
   groupScreenId,
   hasGroupPages,
+  noteSaysStatus,
   isInfoCard,
   menuItems,
   normalize,
@@ -275,14 +276,16 @@ function renderGroup(screenId, blocks, subsection, rows) {
     group.append(h('h2', { class: 'group-title', id }, subsection.title));
   }
 
+  // Shown once above the rows; a status the group's note already states is left to the note.
+  const sharedAbove = shared.filter((f) => !(f.key === 'status' && noteSaysStatus(blocks, f.value)));
   let sharedShown = false;
   for (const block of blocks) {
     if (block.type === 'prose') {
       group.append(renderProse(block));
       continue;
     }
-    if (!isInfoCard(block) && shared.length && !sharedShown) {
-      group.append(renderShared(shared));
+    if (!isInfoCard(block) && sharedAbove.length && !sharedShown) {
+      group.append(renderShared(sharedAbove));
       sharedShown = true;
     }
     const node = renderEntry(block, { shared, routable: true });

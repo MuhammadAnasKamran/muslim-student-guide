@@ -128,7 +128,10 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
       const shown = await view.locator(`[data-entry-id="${entry.id}"]`).evaluate((el, label) => {
         const read = (node) =>
           Boolean(node) && node.checkVisibility() && node.textContent.replace('Halal status: ', '').replace(/,\s*\d+$/, '').trim() === label;
-        return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status'));
+        const saidByNote = [...(el.closest('.group')?.querySelectorAll('.alert') ?? [])].some(
+          (note) => note.checkVisibility() && note.textContent.toLowerCase().includes(label.toLowerCase()),
+        );
+        return read(el.querySelector('.row-head .status')) || read(el.closest('.group')?.querySelector('.shared .status')) || saidByNote;
       }, expected);
       if (!shown) problems.push(`${entry.name}: status "${expected}" not visible on the row or above its group`);
     }

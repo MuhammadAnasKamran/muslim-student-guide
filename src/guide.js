@@ -113,6 +113,13 @@ export function isInfoCard(entry) {
   return entry.fields.length > 0 && entry.fields.every((f) => INFO_KEYS.includes(f.key));
 }
 
+// A status every row shares need not show above the group when the group's own note
+// already says it ("Community-known halal kitchens, ..."): say a fact once.
+export function noteSaysStatus(blocks, statusKey) {
+  const label = STATUS_LABELS[statusKey]?.label.toLowerCase();
+  return Boolean(label) && blocks.some((b) => b.type === 'prose' && b.kind === 'blockquote' && b.runs.map((r) => r.text).join('').toLowerCase().includes(label));
+}
+
 // Facts that every row in a group has with the same value, so the screen can
 // say them once above the rows instead of on each one.
 export function sharedFacts(entries) {

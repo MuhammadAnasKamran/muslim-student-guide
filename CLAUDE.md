@@ -134,7 +134,9 @@ The logic lives in `src/guide.js`.
 - An entry made only of `note` and `link` is an always-open card: tips, apps, lists.
 - When every row under a heading has the same value for a field, that value shows once
   above the rows as chips instead of on each one. This includes `status`: where a whole
-  group shares one, the badge sits above the group, still visible without tapping.
+  group shares one, the badge sits above the group, still visible without tapping — unless
+  the group's `>` note already contains the status word ("Community-known ..."), which then
+  says it once.
 - `photo` names a file in `src/photos/` and shows on the right of the row, without tapping.
   Add photos only with `node scripts/add-photo.mjs <file> <name>`, which strips hidden
   metadata (GPS location, camera details, AI provenance). Only publish a photo MUSA took or

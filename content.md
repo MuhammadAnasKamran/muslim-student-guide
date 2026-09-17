@@ -90,8 +90,9 @@ It will tell you about unknown keys, bad status values, and dead links.
 - link: https://maps.app.goo.gl/fpzSoC8n3iSdeTu69
 - TODO: exact street address, confirmed Jummah time, whether students are welcome
 
+## Prayer Times for HK Mosques
+
 ### Athan Plus
-- note: Prayer times for HK mosques
 - link: https://play.google.com/store/apps/details?id=com.masjidal.athanplus
 - TODO: iOS App Store link
 
@@ -123,7 +124,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### The Forest — VA Student Canteen
 - where: G/F, VA Student Canteen
 - status: certified-section
-- tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
 - warning: Only these 3 meals are halal. Other dishes are not.
 - photo: curry-menu.jpg
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/va-student-canteen/
@@ -131,7 +131,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Campus vending machine
 - where: VA210
 - status: certified
-- tags: Halal logo on machine
 - photo: campus-vending-machine.jpg
 - TODO: official name of this vending machine
 
@@ -153,7 +152,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Hung Hom Halls Canteen
 - where: Hung Hom Halls
 - status: certified-section
-- tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
 - warning: Only these 3 meals are halal. Other dishes are not.
 - photo: curry-menu.jpg
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
