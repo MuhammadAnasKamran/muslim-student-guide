@@ -19,7 +19,11 @@ export const SUMMARY_KEYS = ['tag', 'location', 'where', 'walk', 'district', 'wh
 
 // Highlighted tags, visible without tapping.
 // `tags` holds several chips separated by ' · '.
-export const CHIP_KEYS = ['jummah', 'prayers', 'tags', 'perk', 'delivery'];
+export const CHIP_KEYS = ['jummah', 'tags', 'perk', 'delivery'];
+
+// A light line under the chips, visible without tapping: which prayers are held,
+// "Dhuhr · Asr · Maghrib · Isha".
+export const FOOTNOTE_KEYS = ['prayers'];
 
 // Rendered in their own way: the status badge and the link button.
 // `warning` is a caveat that must be read before acting, like "only these meals
@@ -117,7 +121,7 @@ export function rowParts(entry, shared = []) {
   const hidden = new Set(shared.map((f) => f.key));
   const fields = entry.fields.filter((f) => !hidden.has(f.key));
   for (const { key } of fields) {
-    const placed = SUMMARY_KEYS.includes(key) || CHIP_KEYS.includes(key) || SPECIAL_KEYS.includes(key) || FIELD_LABELS[key];
+    const placed = SUMMARY_KEYS.includes(key) || CHIP_KEYS.includes(key) || FOOTNOTE_KEYS.includes(key) || SPECIAL_KEYS.includes(key) || FIELD_LABELS[key];
     if (!placed) throw new Error(`No place to show "${key}" on "${entry.name}" (content.md line ${entry.line})`);
   }
 
@@ -138,6 +142,7 @@ export function rowParts(entry, shared = []) {
     chips,
     warnings: fields.filter((f) => f.key === 'warning').map((f) => f.value),
     summary,
+    footnote: FOOTNOTE_KEYS.flatMap((key) => fields.filter((f) => f.key === key).map((f) => f.value)).join(' · '),
     facts,
     link,
     copyAddress,

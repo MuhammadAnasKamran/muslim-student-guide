@@ -219,8 +219,10 @@ test('Halal Food drills down like Prayer Facilities: group page, open a row, Bac
 test('prayer times, access limits and shared facts show without tapping', async ({ page }) => {
   await page.goto('/#/prayer-facilities');
   const view = screenView(page, 'prayer-facilities');
-  await expect(view.locator('.chip', { hasText: 'Daily prayers + Jummah' })).toBeVisible();
-  await expect(view.locator('.chip', { hasText: /^Daily prayers$/ })).toBeVisible();
+  const z302a = view.locator('[data-entry-id="z302a"] .row-head');
+  await expect(z302a.locator('.chip', { hasText: /^4 daily prayers$/ })).toBeVisible();
+  await expect(z302a.locator('.chip', { hasText: /^Friday khutbah$/ })).toBeVisible();
+  await expect(z302a.locator('.row-footnote')).toHaveText('Dhuhr · Asr · Maghrib · Isha');
   await expect(view.locator('.shared .chip', { hasText: 'Residents only' })).toBeVisible();
   await expect(view.locator('.shared .chip', { hasText: 'Student card entry' })).toBeVisible();
 });

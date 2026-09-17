@@ -58,14 +58,16 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Z302a
 - access: Student card entry
 - arrangement: Men's & women's areas
-- prayers: Daily prayers + Jummah
+- tags: 4 daily prayers · Friday khutbah
+- prayers: Dhuhr · Asr · Maghrib · Isha
 - link: https://mosque-prayer-display-screen-cyan.vercel.app
 - link-label: Live prayer times
 
 ### PQ502a
 - access: Student card entry
 - arrangement: Men's & women's areas
-- prayers: Daily prayers
+- tags: 4 daily prayers
+- prayers: Dhuhr · Asr · Maghrib · Isha
 
 ## Hall Prayer Rooms
 
@@ -77,13 +79,11 @@ It will tell you about unknown keys, bad status values, and dead links.
 - location: 1/F, beside the gym
 - access: Residents only
 
-## Discover Islam Masjid
+## Nearest Masjid
 
 ### Discover Islam Hong Kong
 - district: Hung Hom
-- address: Hung Hom, Kowloon
 - tags: 5 daily prayers · Friday khutbah
-- notes: Times on Athan Plus, or ask on arrival.
 - link: https://maps.app.goo.gl/fpzSoC8n3iSdeTu69
 - TODO: exact street address, confirmed Jummah time, whether students are welcome
 

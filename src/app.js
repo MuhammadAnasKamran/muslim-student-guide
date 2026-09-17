@@ -335,6 +335,7 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
     h('h3', { class: 'row-name' }, entry.name),
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
+    parts.footnote ? h('span', { class: 'row-footnote' }, parts.footnote) : null,
     ...parts.warnings.map((text) => h('span', { class: 'row-warning' }, text)),
   ];
 

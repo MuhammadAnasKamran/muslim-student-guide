@@ -54,9 +54,11 @@ test('a status shown above its group is left off the rows', () => {
   assert.equal(rowParts(k, [{ key: 'status', value: 'unverified' }]).status, null);
 });
 
-test('tags become one chip each, and prayers is a chip of its own', () => {
-  const parts = rowParts(entry('Z', { prayers: 'Daily prayers + Jummah', tags: 'South Asian meals · Several options daily' }));
-  assert.deepEqual(parts.chips.map((c) => c.text), ['Daily prayers + Jummah', 'South Asian meals', 'Several options daily']);
+test('tags become one chip each, and prayers is a light line under them', () => {
+  const parts = rowParts(entry('Z', { prayers: 'Dhuhr · Asr · Maghrib · Isha', tags: '4 daily prayers · Friday khutbah' }));
+  assert.deepEqual(parts.chips.map((c) => c.text), ['4 daily prayers', 'Friday khutbah']);
+  assert.equal(parts.footnote, 'Dhuhr · Asr · Maghrib · Isha');
+  assert.equal(parts.expandable, false, 'the prayer names are on the row, so they give it nothing to open');
   assert.equal(parts.expandable, false, 'chips alone do not make a row open');
 });
 

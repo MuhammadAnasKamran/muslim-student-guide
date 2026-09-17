@@ -545,7 +545,8 @@ main {
   font-weight: 700;
 }
 
-.row-summary {
+.row-summary,
+.row-footnote {
   color: var(--muted);
   font-size: 0.9375rem;
 }

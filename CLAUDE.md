@@ -118,7 +118,8 @@ The logic lives in `src/guide.js`.
 - Each `##` subsection is a heading on that screen.
 - Each `###` entry is a row. Without tapping, a row shows:
   - the name and the halal status;
-  - `jummah`, `prayers`, `tags`, `perk` and `delivery` as highlighted chips. A `tags`
+  - `prayers` (which prayers are held, "Dhuhr · Asr · Maghrib · Isha") as a light line under the chips;
+  - `jummah`, `tags`, `perk` and `delivery` as highlighted chips. A `tags`
     value holds several chips separated by ` · `, so facts read as tags, not sentences;
   - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`
     and `price`.
