@@ -43,6 +43,14 @@ test('prayers must be known prayer names, in the order of the day', () => {
   assert.match(body('Isha · Dhuhr')[0].message, /order of the day/);
 });
 
+test('a map link without a saved preview is a warning, not an error', () => {
+  const doc = parseContent(`${HEADER}# Shops\n### Shop\n- link: https://maps.app.goo.gl/abc\n`);
+  const without = validate(doc, { previews: {} });
+  assert.deepEqual(without.errors, []);
+  assert.match(without.warnings[0].message, /make-map-previews/);
+  assert.deepEqual(validate(doc, { previews: { 'https://maps.app.goo.gl/abc': { lat: 22.3, lng: 114.18 } } }).warnings, []);
+});
+
 test('a value containing a colon is valid', () => {
   const { errors } = check('# 1. FOOD\n### Place\n- where: Z Core\n- status: certified\n- note: Opens 10:00: usually\n');
   assert.deepEqual(errors, []);

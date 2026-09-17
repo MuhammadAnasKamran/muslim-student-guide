@@ -148,8 +148,12 @@ The logic lives in `src/guide.js`.
 - WhatsApp group links carry the WhatsApp glyph from `src/icons/whatsapp.svg` (public domain,
   Wikimedia Commons "WhatsApp Logo green.svg"). Use it unmodified, in its green, never larger
   than the link text, per WhatsApp's brand rules.
-- Map links carry a pin icon drawn in the page. Never load map images from a third party,
-  and never build a map URL that isn't in `content.md`.
+- Map links carry a pin icon drawn in the page, and a map preview when one is saved: OpenStreetMap
+  tiles in `src/maps/tiles/`, placed by `src/maps/previews.json`, with a drawn pin and the credit
+  "© OpenStreetMap contributors" (ODbL). `node scripts/make-map-previews.mjs` builds them from the
+  coordinates in the links themselves; run it after adding or changing a map link (`npm run check`
+  warns when one is missing). Never load map images from a third party at runtime, and never build
+  a map URL that isn't in `content.md`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
 - On long screens (the Halal Food screen, matched on the word "food" in its title) each
   `##` group is its own page, opened from a card on that screen, the same way Prayer
@@ -170,6 +174,7 @@ scripts/
   schema.mjs            allowed keys and statuses
   check-links.mjs       every URL still resolves
   add-photo.mjs         copy a photo into src/photos/ with its metadata stripped
+  make-map-previews.mjs   save OpenStreetMap preview tiles for every map link
   dev.mjs               local server
   measure-background.mjs  brightness of the background photo, for the contrast test
 src/
@@ -177,6 +182,7 @@ src/
   background.jpg        background photograph
   photos/               entry photos, named in content.md
   icons/                brand glyphs for link buttons (WhatsApp)
+  maps/                 map preview tiles and previews.json
   app.js                home menu, screens, rows, search, Back button
   guide.js              how entries render; shared with the tests
   styles.css

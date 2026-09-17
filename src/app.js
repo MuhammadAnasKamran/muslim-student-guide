@@ -16,6 +16,7 @@ import {
   normalize,
   parentScreen,
   parseRoute,
+  previewTiles,
   routeFor,
   rowParts,
   searchText,
@@ -33,6 +34,7 @@ const backButton = document.getElementById('back');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 const view = {
+  maps: { places: {} }, // src/maps/previews.json: map previews by link
   meta: null,
   home: null,
   screens: new Map(), // screen id -> { title, parentTitle, node, rows: Map(entry id -> <details>) }
@@ -48,10 +50,15 @@ start();
 
 async function start() {
   let doc;
+  // Map previews are a nicety: if they don't load, the map buttons still work.
+  const maps = fetch('maps/previews.json', { cache: 'no-cache' })
+    .then((response) => (response.ok ? response.json() : null))
+    .catch(() => null);
   try {
     const response = await fetch('content.json', { cache: 'no-cache' });
     if (!response.ok) throw new Error(`content.json returned HTTP ${response.status}`);
     doc = await response.json();
+    view.maps = (await maps) ?? view.maps;
   } catch (error) {
     app.replaceChildren(h('p', { class: 'load-error' }, 'The guide could not be loaded. Check your connection and refresh the page.'));
     throw error;
@@ -471,15 +478,28 @@ function renderPrayers({ held, jummah }) {
 }
 
 function renderLink({ href, text, host, map, whatsapp }) {
+  const place = map ? view.maps.places?.[href] : null;
   return h(
     'a',
-    { class: 'entry-link', href, rel: 'noopener', target: '_blank' },
+    { class: place ? 'entry-link has-preview' : 'entry-link', href, rel: 'noopener', target: '_blank' },
+    place ? renderMapPreview(place, view.maps.credit) : null,
     map ? mapPin() : null,
     // The WhatsApp glyph, unmodified and served from this site (src/icons/whatsapp.svg).
     whatsapp ? h('img', { class: 'link-icon', src: 'icons/whatsapp.svg', alt: '', width: '24', height: '24' }) : null,
     h('span', { class: 'link-lines' }, h('span', { class: 'link-text' }, text), h('span', { class: 'link-host' }, host)),
     h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
   );
+}
+
+// A small map around the place, from tiles this site serves itself, with a pin on the spot.
+function renderMapPreview(place, credit) {
+  const tiles = h('span', { class: 'map-tiles' });
+  for (const t of previewTiles(place.lat, place.lng)) {
+    tiles.append(h('img', { class: 'map-tile', src: `maps/tiles/${t.z}-${t.x}-${t.y}.png`, alt: '', width: '256', height: '256', loading: 'lazy', decoding: 'async', style: `left: ${t.left}px; top: ${t.top}px` }));
+  }
+  const pin = mapPin();
+  pin.setAttribute('class', 'map-pin');
+  return h('span', { class: 'map-preview', 'aria-hidden': 'true' }, tiles, pin, credit ? h('span', { class: 'map-credit' }, credit) : null);
 }
 
 // Icons are drawn here rather than loaded from an icon service: no third-party

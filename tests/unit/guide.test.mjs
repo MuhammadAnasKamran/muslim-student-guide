@@ -11,6 +11,8 @@ import {
   linkText,
   noteSaysStatus,
   parseWashrooms,
+  previewTiles,
+  worldPixel,
   menuItems,
   parentScreen,
   parseRoute,
@@ -190,6 +192,21 @@ test('a group note that already names the shared status stands in for the badge'
   assert.equal(noteSaysStatus([note('Community-known halal kitchens, but not endorsed by MUSA.')], 'unverified'), true);
   assert.equal(noteSaysStatus([note('Not checked by MUSA.')], 'unverified'), false, 'without the word, the badge stays');
   assert.equal(noteSaysStatus([{ type: 'prose', kind: 'paragraph', runs: [{ text: 'Community-known' }] }], 'unverified'), false, 'only a highlighted note counts');
+});
+
+test('map preview tiles cover the preview and put the place in the middle', () => {
+  assert.deepEqual(worldPixel(0, 0, 0), { x: 128, y: 128 });
+  const tiles = previewTiles(22.3059078, 114.1865903);
+  for (const t of tiles) {
+    assert.equal(t.z, 17);
+    assert.ok(t.left <= 0 || t.left - 256 < 340, 'every tile reaches into the preview');
+  }
+  // The place's own tile contains the point.
+  const home = tiles.find((t) => t.left <= 0 && t.left > -256 && t.top <= 0 && t.top > -256);
+  assert.ok(home, 'one tile holds the place');
+  const leftmost = Math.min(...tiles.map((t) => t.left));
+  const rightmost = Math.max(...tiles.map((t) => t.left)) + 256;
+  assert.ok(leftmost <= -340 && rightmost >= 340, 'tiles span the full preview width');
 });
 
 test('page addresses round-trip', () => {

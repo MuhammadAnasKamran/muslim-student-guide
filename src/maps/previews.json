@@ -1,0 +1,45 @@
+{
+  "credit": "© OpenStreetMap contributors",
+  "places": {
+    "https://maps.app.goo.gl/fpzSoC8n3iSdeTu69": {
+      "name": "Discover Islam Hong Kong",
+      "lat": 22.3103793,
+      "lng": 114.1900394
+    },
+    "https://maps.app.goo.gl/yF8Y3U2ATM7XPgvEA": {
+      "name": "ParknShop (near campus)",
+      "lat": 22.3027668,
+      "lng": 114.1830425
+    },
+    "https://maps.app.goo.gl/XvX6UypsnyTqaWLs9": {
+      "name": "ParknShop (near Homantin Halls)",
+      "lat": 22.3075211,
+      "lng": 114.1868973
+    },
+    "https://maps.app.goo.gl/VP4dTyGSyXyiVi7v9": {
+      "name": "ParknShop (Whampoa)",
+      "lat": 22.3051681,
+      "lng": 114.1862779
+    },
+    "https://maps.app.goo.gl/J1KLcg6d8qdzFrtB6?g_st=aw": {
+      "name": "Taste",
+      "lat": 22.3054521,
+      "lng": 114.19117
+    },
+    "https://www.google.com/maps/place/Wellcome/@22.3057914,114.1865303,17z/data=!3m1!4b1!4m6!3m5!1s0x340400e0a8c5c933:0x60a6e0d5b33f4b73!8m2!3d22.3057914!4d114.1865303!16s%2Fg%2F1tlnb0nt!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDkxNC4wIKXMDSoASAFQAw%3D%3D": {
+      "name": "Wellcome",
+      "lat": 22.3057914,
+      "lng": 114.1865303
+    },
+    "https://maps.app.goo.gl/KyaoL41JAT5GJazu7": {
+      "name": "DS Groceries",
+      "lat": 22.3063009,
+      "lng": 114.1863501
+    },
+    "https://maps.app.goo.gl/ZbyruHjwpNYpqduW7": {
+      "name": "Ka Hing Supermarket",
+      "lat": 22.3059078,
+      "lng": 114.1865903
+    }
+  }
+}

@@ -169,6 +169,29 @@ export function rowParts(entry, shared = []) {
   };
 }
 
+// Map previews: OpenStreetMap tiles saved in src/maps/tiles/ by
+// scripts/make-map-previews.mjs, placed around the point so it sits in the middle.
+export const MAP_PREVIEW = { zoom: 17, halfWidth: 340, halfHeight: 80, tile: 256 };
+
+// Web Mercator: where a latitude and longitude fall, in pixels, on the world map at a zoom.
+export function worldPixel(lat, lng, zoom) {
+  const scale = 256 * 2 ** zoom;
+  const sin = Math.sin((lat * Math.PI) / 180);
+  return { x: ((lng + 180) / 360) * scale, y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale };
+}
+
+// The tiles covering the preview, each with its offset from the point in pixels.
+export function previewTiles(lat, lng, { zoom, halfWidth, halfHeight, tile } = MAP_PREVIEW) {
+  const centre = worldPixel(lat, lng, zoom);
+  const tiles = [];
+  for (let x = Math.floor((centre.x - halfWidth) / tile); x <= Math.floor((centre.x + halfWidth) / tile); x++) {
+    for (let y = Math.floor((centre.y - halfHeight) / tile); y <= Math.floor((centre.y + halfHeight) / tile); y++) {
+      tiles.push({ z: zoom, x, y, left: Math.round((x * tile - centre.x) * 10) / 10, top: Math.round((y * tile - centre.y) * 10) / 10 });
+    }
+  }
+  return tiles;
+}
+
 // The visible text of a link describes where it goes, judged from the URL
 // itself. `link-label` from content.md always wins.
 export function linkText(href, label) {

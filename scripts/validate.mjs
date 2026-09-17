@@ -9,11 +9,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ROOT, countEntries, entriesOf, formatProblems, parseContent } from './parse.mjs';
 import { ENTRY_KEYS, META_KEYS, PLACEHOLDER, STATUSES } from './schema.mjs';
+import { linkText } from '../src/guide.js';
 
 const PHOTO_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'photos');
 
 // photoExists is swappable so tests don't depend on files in src/photos.
-export function validate(doc, { photoExists = (name) => existsSync(path.join(PHOTO_DIR, name)) } = {}) {
+const MAP_INDEX = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'maps', 'previews.json');
+const readPreviews = () => (existsSync(MAP_INDEX) ? JSON.parse(readFileSync(MAP_INDEX, 'utf8')).places : {});
+
+// photoExists and previews are swappable so tests don't depend on files in src/.
+export function validate(doc, { photoExists = (name) => existsSync(path.join(PHOTO_DIR, name)), previews = readPreviews() } = {}) {
   const errors = [...doc.problems];
   const warnings = [];
   const error = (line, message) => errors.push({ line, message });
@@ -40,6 +45,9 @@ export function validate(doc, { photoExists = (name) => existsSync(path.join(PHO
       if (field.link) {
         const reason = linkProblem(field.link.value);
         if (reason) error(field.link.line, `${where} link ${reason}: ${field.link.value}`);
+      }
+      if (field.link && !linkProblem(field.link.value) && linkText(field.link.value).map && !previews[field.link.value]) {
+        warnings.push({ line: field.link.line, message: `${where} map link has no preview yet. Run: node scripts/make-map-previews.mjs` });
       }
       if (field['link-label'] && !field.link) {
         error(field['link-label'].line, `${where} has "link-label" but no "link".`);

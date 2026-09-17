@@ -539,6 +539,32 @@ test('opening a row with a photo shows the photo full width', async ({ page }) =
   expect(img.width).toBeGreaterThan(body.width * 0.8);
 });
 
+test('a map button shows a map preview with a pin on the place, served by this site', async ({ page }) => {
+  const previews = JSON.parse(readFileSync(new URL('../src/maps/previews.json', import.meta.url), 'utf8')).places;
+  const { screens } = load();
+  const target = screens
+    .flatMap(({ id, entries }) => entries.map((entry) => ({ id, entry, link: entry.fields.find((f) => f.key === 'link')?.value })))
+    .find(({ entry, link }) => link && previews[link] && !entry.fields.some((f) => f.key === 'link-label'));
+  await page.goto(`/#/${target.id}/${target.entry.id}`);
+  const button = screenView(page, target.id).locator(`[data-entry-id="${target.entry.id}"] a.entry-link.has-preview`);
+  const preview = button.locator('.map-preview');
+  await expect(preview).toBeVisible();
+  await expect(preview.locator('.map-credit')).toHaveText('© OpenStreetMap contributors');
+  await expect
+    .poll(() => preview.locator('img.map-tile').evaluateAll((imgs) => imgs.every((img) => img.complete && img.naturalWidth === 256)))
+    .toBe(true);
+  // Measured in one frame, so a row still scrolling into view can't skew it.
+  const offset = await preview.evaluate((frame) => {
+    const box = frame.getBoundingClientRect();
+    const pin = frame.querySelector('.map-pin').getBoundingClientRect();
+    return { x: pin.left + pin.width / 2 - (box.left + box.width / 2), y: pin.top + pin.height * 0.92 - (box.top + box.height / 2) };
+  });
+  expect(Math.abs(offset.x), 'pin tip is centred across').toBeLessThanOrEqual(1.5);
+  expect(Math.abs(offset.y), 'pin tip is centred down').toBeLessThanOrEqual(1.5);
+  const external = await page.evaluate(() => performance.getEntriesByType('resource').map((e) => new URL(e.name).host).filter((h) => h !== location.host));
+  expect(external, 'map tiles come from this site').toEqual([]);
+});
+
 test.describe('copy address', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
