@@ -885,13 +885,36 @@ main {
 }
 
 .legend > summary {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 48px;
-  padding-inline: 0.875rem;
+  padding: 0 2.25rem 0 0.875rem;
   color: var(--accent);
   font-weight: 700;
+  list-style: none;
   cursor: pointer;
+}
+
+.legend > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* The same arrow as the rows, so it reads as something that opens. */
+.legend > summary::after {
+  content: "›";
+  content: "›" / "";
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.legend[open] > summary::after {
+  transform: translateY(-50%) rotate(90deg);
 }
 
 .legend-list {

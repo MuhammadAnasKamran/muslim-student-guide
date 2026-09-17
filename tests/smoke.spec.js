@@ -114,7 +114,7 @@ test('every entry in content.json is on its screen with its name, facts and link
   expect(problems).toEqual([]);
 });
 
-test('halal status, Jummah and warnings are visible without tapping anything', async ({ page }) => {
+test('halal status and Jummah are visible without tapping, and warnings are never missed', async ({ page }) => {
   const { screens } = load();
   const problems = [];
   for (const { id, title, entries, quotes } of screens) {
@@ -143,12 +143,21 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
       if (!(await view.locator('.alert', { hasText: words }).first().isVisible())) problems.push(`${title}: warning "${words}" hidden`);
     }
 
-    // Row-level warnings and chips show without opening the row.
+    // Chips show without opening the row. A warning shows on a row that doesn't open,
+    // and first thing in the drop-down of one that does.
     for (const entry of entries) {
       const fields = Object.fromEntries(entry.fields.map((f) => [f.key, f.value]));
       const card = view.locator(`[data-entry-id="${entry.id}"]`);
-      if (fields.warning && !(await card.locator('.row-head .row-warning', { hasText: fields.warning }).isVisible())) {
-        problems.push(`${entry.name}: warning "${fields.warning}" hidden`);
+      if (fields.warning) {
+        const opens = await card.evaluate((el) => el.matches('details'));
+        if (opens) {
+          await card.evaluate((el) => (el.open = true));
+          const first = card.locator('.row-body > :first-child');
+          if (!(await first.isVisible()) || (await first.textContent()) !== fields.warning) problems.push(`${entry.name}: warning is not first in the drop-down`);
+          await card.evaluate((el) => (el.open = false));
+        } else if (!(await card.locator('.row-head .row-warning', { hasText: fields.warning }).isVisible())) {
+          problems.push(`${entry.name}: warning "${fields.warning}" hidden`);
+        }
       }
       if (fields.jummah) {
         const line = card.locator('.row-head .jummah', { hasText: fields.jummah === 'yes' ? /^Jummah held here$/ : /^No Jummah$/ });

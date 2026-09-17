@@ -128,7 +128,9 @@ The logic lives in `src/guide.js`.
   - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`
     and `price`.
 - `warning` is a caveat that must be read before acting ("Only these 3 meals are halal.
-  Other dishes are not."). It shows on the row in amber, never folded away, never shared.
+  Other dishes are not."). It shows in amber and is never shared. On a row that opens, it is the
+  first thing in the drop-down (the committee's call, to keep cards short; the status word stays
+  on the card); on a row that doesn't open, it shows on the row.
 - Tapping a row shows its other fields, its link, and a Copy address button when there is
   an address but no link. A row with nothing more to show does not open.
 - An entry made only of `note` and `link` is an always-open card: tips, apps, lists.
@@ -203,7 +205,7 @@ tests/
 - Minimum 48px tap targets. People tap these while walking.
 - No modals or carousels. Rows may open on tap, but the name, where it is, and the halal
   status word must be visible without tapping — on the row, once above a group where every
-  row shares it. A card that only opens a group's page may show just the group's name. Halal status, prayer times, access limits and warnings are never folded away.
+  row shares it. A card that only opens a group's page may show just the group's name. Halal status, prayer times and access limits are never folded away.
 - Short, plain words, as tags rather than sentences. Say a fact once, as briefly as it stays exact.
 - One theme, dark, for now: the light palette was removed on 2026-09-16 because the
   background photograph only reads on a dark ground. Bringing light mode back means a

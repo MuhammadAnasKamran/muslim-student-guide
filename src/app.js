@@ -355,7 +355,8 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
     parts.prayers ? renderPrayers(parts.prayers) : null,
     parts.washrooms ? renderWashrooms(parts.washrooms) : null,
-    ...parts.warnings.map((text) => h('span', { class: 'row-warning' }, text)),
+    // A row that opens keeps its warning in the drop-down; a row that doesn't shows it here.
+    ...(parts.expandable ? [] : parts.warnings.map((text) => h('span', { class: 'row-warning' }, text))),
   ];
 
   const row = renderRow(entry, id, parts, head);
@@ -369,7 +370,7 @@ function renderRow(entry, id, parts, head) {
     return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: 'row-head' }, ...head));
   }
 
-  const body = h('div', { class: 'row-body' });
+  const body = h('div', { class: 'row-body' }, ...parts.warnings.map((text) => h('p', { class: 'row-warning' }, text)));
   // Photos live in the drop-down, full width: a menu board can't be read as a thumbnail.
   if (parts.photo) body.append(h('img', { class: 'row-photo-large', src: parts.photo.src, alt: parts.photo.alt, loading: 'lazy', decoding: 'async' }));
   if (parts.facts.length) {

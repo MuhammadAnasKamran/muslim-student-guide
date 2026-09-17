@@ -101,13 +101,9 @@ It will tell you about unknown keys, bad status values, and dead links.
 # Muslim-Friendly Washrooms
 
 ### Core C
-- floors: All floors
-- feature: Bidet
 - washrooms: G: female, accessible · 1: male · P: male, female · 3: male, female · 4: male, female · 5: male · 6: male, female · 7: male, female
 
 ### Core E
-- floors: All floors
-- feature: Bidet
 - washrooms: G: male · 1: female · P: male · 3: male · 4: female, accessible · 5: male · 6: female · 7: female
 
 ---
@@ -201,7 +197,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ### Waqas Store
 - status: unverified
-- tags: All groceries
 - delivery: Free delivery to both halls
 - link: https://chat.whatsapp.com/Bkfea00tZUdBsbP7dyuhM9
 - link-label: Join the WhatsApp group
@@ -221,7 +216,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - link: https://maps.app.goo.gl/VP4dTyGSyXyiVi7v9
 
 ### Taste
-- status: certified-section
+- status: check-packaging
 - link: https://maps.app.goo.gl/J1KLcg6d8qdzFrtB6?g_st=aw
 
 ### Wellcome
@@ -234,8 +229,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ### Ka Hing Supermarket
 - status: check-packaging
-- tags: Certified snacks
-- warning: No halal meat
 - link: https://maps.app.goo.gl/ZbyruHjwpNYpqduW7
 
 ## Tips
