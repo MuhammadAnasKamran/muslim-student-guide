@@ -344,7 +344,7 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
     h('h3', { class: 'row-name' }, entry.name),
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
-    parts.footnote ? h('span', { class: 'row-footnote' }, parts.footnote) : null,
+    parts.prayers ? renderPrayers(parts.prayers) : null,
     ...parts.warnings.map((text) => h('span', { class: 'row-warning' }, text)),
   ];
 
@@ -391,7 +391,7 @@ function renderShared(shared) {
   const node = h('p', { class: 'shared' }, h('span', { class: 'visually-hidden' }, 'All of these: '));
   for (const { key, value } of shared) {
     if (key === 'status') node.append(renderStatus({ key: value, ...STATUS_LABELS[value] }));
-    else for (const text of splitTags(value)) node.append(renderChip({ text, muted: false }));
+    else for (const text of splitTags(value)) node.append(renderChip({ text }));
   }
   return node;
 }
@@ -402,7 +402,18 @@ function renderStatus(status) {
 }
 
 function renderChip(chip) {
-  return h('span', { class: chip.muted ? 'chip chip-muted' : 'chip' }, chip.text);
+  return h('span', { class: 'chip' }, chip.text);
+}
+
+// The prayers held, as plain names with a dot, and Jummah on its own highlighted line.
+function renderPrayers({ held, jummah }) {
+  return h(
+    'span',
+    { class: 'prayers' },
+    held.length ? h('span', { class: 'prayer-list', role: 'list', 'aria-label': 'Prayers held' }, ...held.map((name) => h('span', { class: 'prayer', role: 'listitem' }, name))) : null,
+    jummah === true ? h('span', { class: 'jummah jummah-yes' }, 'Jummah held here') : null,
+    jummah === false ? h('span', { class: 'jummah jummah-no' }, 'No Jummah') : null,
+  );
 }
 
 function renderLink({ href, text, host, map, whatsapp }) {

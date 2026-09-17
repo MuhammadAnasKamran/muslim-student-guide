@@ -54,11 +54,14 @@ test('a status shown above its group is left off the rows', () => {
   assert.equal(rowParts(k, [{ key: 'status', value: 'unverified' }]).status, null);
 });
 
-test('tags become one chip each, and prayers is a light line under them', () => {
-  const parts = rowParts(entry('Z', { prayers: 'Dhuhr · Asr · Maghrib · Isha', tags: '4 daily prayers · Friday khutbah' }));
-  assert.deepEqual(parts.chips.map((c) => c.text), ['4 daily prayers', 'Friday khutbah']);
-  assert.equal(parts.footnote, 'Dhuhr · Asr · Maghrib · Isha');
-  assert.equal(parts.expandable, false, 'the prayer names are on the row, so they give it nothing to open');
+test('tags become one chip each; prayers and Jummah are read as the prayers held', () => {
+  const parts = rowParts(entry('Z', { prayers: 'Dhuhr · Asr · Maghrib · Isha', jummah: 'yes', tags: 'Quiet · Carpeted' }));
+  assert.deepEqual(parts.chips.map((c) => c.text), ['Quiet', 'Carpeted']);
+  assert.deepEqual(parts.prayers, { held: ['Dhuhr', 'Asr', 'Maghrib', 'Isha'], jummah: true });
+  assert.deepEqual(rowParts(entry('PQ', { prayers: 'Dhuhr', jummah: 'no' })).prayers, { held: ['Dhuhr'], jummah: false });
+  assert.deepEqual(rowParts(entry('M', { prayers: 'Fajr · Isha' })).prayers, { held: ['Fajr', 'Isha'], jummah: null }, 'no jummah field: say nothing about it');
+  assert.equal(rowParts(entry('H', { location: '2/F' })).prayers, null);
+  assert.equal(parts.expandable, false, 'the prayers are on the row, so they give it nothing to open');
   assert.equal(parts.expandable, false, 'chips alone do not make a row open');
 });
 
@@ -68,7 +71,7 @@ test('sharing needs two or more rows, and info cards do not count', () => {
   assert.deepEqual(sharedFacts([k1, entry('Tip', { note: 'HK$40' })]), []);
 });
 
-test('a prayer room row: summary, Jummah chip, facts and link', () => {
+test('a prayer room row: summary, Jummah, facts and link', () => {
   const z = entry('Z302a', {
     tag: 'Main prayer room',
     location: 'Z Core',
@@ -82,11 +85,12 @@ test('a prayer room row: summary, Jummah chip, facts and link', () => {
   const parts = rowParts(z, [{ key: 'access', value: 'Card' }]);
   assert.equal(parts.status, null);
   assert.equal(parts.summary, 'Main prayer room · Z Core');
-  assert.deepEqual(parts.chips, [{ key: 'jummah', text: 'Jummah', muted: false }]);
+  assert.deepEqual(parts.chips, []);
+  assert.equal(parts.prayers.jummah, true);
   assert.deepEqual(parts.facts.map((f) => [f.label, f.value]), [['Wudu', 'Nearby'], ['Jummah', 'Held here']]);
   assert.equal(parts.link.text, 'Live prayer times');
   assert.equal(parts.expandable, true);
-  assert.deepEqual(rowParts(entry('PQ', { jummah: 'no' })).chips, [{ key: 'jummah', text: 'No Jummah', muted: true }]);
+  assert.equal(rowParts(entry('PQ', { jummah: 'no' })).prayers.jummah, false);
 });
 
 test('a food row with no status says so, and shows its perk as a chip', () => {

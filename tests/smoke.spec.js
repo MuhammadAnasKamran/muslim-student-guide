@@ -85,7 +85,7 @@ test('every entry in content.json is on its screen with its name, facts and link
       const name = await card.locator('h3').textContent();
       if (name !== entry.name) problems.push(`name "${name}" should be "${entry.name}"`);
       for (const { key, value } of entry.fields) {
-        if (key === 'status' || key === 'jummah') continue;
+        if (key === 'status' || key === 'jummah' || key === 'prayers') continue;
         if (key === 'photo') {
           const src = await card.locator('img.row-photo').getAttribute('src');
           if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);
@@ -138,8 +138,12 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
         problems.push(`${entry.name}: warning "${fields.warning}" hidden`);
       }
       if (fields.jummah) {
-        const chip = card.locator('.row-head .chip', { hasText: fields.jummah === 'yes' ? /^Jummah$/ : /^No Jummah$/ });
-        if (!(await chip.isVisible())) problems.push(`${entry.name}: Jummah chip hidden`);
+        const line = card.locator('.row-head .jummah', { hasText: fields.jummah === 'yes' ? /^Jummah held here$/ : /^No Jummah$/ });
+        if (!(await line.isVisible())) problems.push(`${entry.name}: Jummah line hidden`);
+      }
+      if (fields.prayers) {
+        const shown = await card.locator('.row-head .prayer').allTextContents();
+        if (shown.join(' · ') !== fields.prayers) problems.push(`${entry.name}: prayers show "${shown.join(' · ')}", not "${fields.prayers}"`);
       }
     }
   }
@@ -220,9 +224,9 @@ test('prayer times, access limits and shared facts show without tapping', async 
   await page.goto('/#/prayer-facilities');
   const view = screenView(page, 'prayer-facilities');
   const z302a = view.locator('[data-entry-id="z302a"] .row-head');
-  await expect(z302a.locator('.chip', { hasText: /^4 daily prayers$/ })).toBeVisible();
-  await expect(z302a.locator('.chip', { hasText: /^Friday khutbah$/ })).toBeVisible();
-  await expect(z302a.locator('.row-footnote')).toHaveText('Dhuhr · Asr · Maghrib · Isha');
+  await expect(z302a.locator('.prayer')).toHaveText(['Dhuhr', 'Asr', 'Maghrib', 'Isha']);
+  await expect(z302a.locator('.jummah-yes')).toHaveText('Jummah held here');
+  await expect(view.locator('[data-entry-id="pq502a"] .row-head .jummah-no')).toHaveText('No Jummah');
   await expect(view.locator('.shared .chip', { hasText: 'Residents only' })).toBeVisible();
   await expect(view.locator('.shared .chip', { hasText: 'Student card entry' })).toBeVisible();
 });

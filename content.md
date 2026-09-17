@@ -58,8 +58,8 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Z302a
 - access: Student card entry
 - arrangement: Men's & women's areas
-- tags: 4 daily prayers · Friday khutbah
 - prayers: Dhuhr · Asr · Maghrib · Isha
+- jummah: yes
 - photo: z302a.jpg
 - link: https://mosque-prayer-display-screen-cyan.vercel.app
 - link-label: Live prayer times
@@ -67,8 +67,8 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### PQ502a
 - access: Student card entry
 - arrangement: Men's & women's areas
-- tags: 4 daily prayers
 - prayers: Dhuhr · Asr · Maghrib · Isha
+- jummah: no
 - photo: pq502a.jpg
 
 ## Hall Prayer Rooms
@@ -85,7 +85,8 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ### Discover Islam Hong Kong
 - district: Hung Hom
-- tags: 5 daily prayers · Friday khutbah
+- prayers: Fajr · Dhuhr · Asr · Maghrib · Isha
+- jummah: yes
 - link: https://maps.app.goo.gl/fpzSoC8n3iSdeTu69
 - TODO: exact street address, confirmed Jummah time, whether students are welcome
 

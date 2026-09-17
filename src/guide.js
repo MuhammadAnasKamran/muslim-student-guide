@@ -19,11 +19,11 @@ export const SUMMARY_KEYS = ['tag', 'location', 'where', 'walk', 'district', 'wh
 
 // Highlighted tags, visible without tapping.
 // `tags` holds several chips separated by ' · '.
-export const CHIP_KEYS = ['jummah', 'tags', 'perk', 'delivery'];
+export const CHIP_KEYS = ['tags', 'perk', 'delivery'];
 
-// A light line under the chips, visible without tapping: which prayers are held,
-// "Dhuhr · Asr · Maghrib · Isha".
-export const FOOTNOTE_KEYS = ['prayers'];
+// Which prayers a room or masjid holds, shown on the row without tapping: the prayer
+// names held ("Dhuhr · Asr · Maghrib · Isha"), and a highlighted Jummah line.
+export const PRAYER_KEYS = ['prayers', 'jummah'];
 
 // Rendered in their own way: the status badge, the link button and the photo, which
 // sits on the right of the row, visible without tapping.
@@ -118,17 +118,14 @@ export function rowParts(entry, shared = []) {
   const hidden = new Set(shared.map((f) => f.key));
   const fields = entry.fields.filter((f) => !hidden.has(f.key));
   for (const { key } of fields) {
-    const placed = SUMMARY_KEYS.includes(key) || CHIP_KEYS.includes(key) || FOOTNOTE_KEYS.includes(key) || SPECIAL_KEYS.includes(key) || FIELD_LABELS[key];
+    const placed = SUMMARY_KEYS.includes(key) || CHIP_KEYS.includes(key) || PRAYER_KEYS.includes(key) || SPECIAL_KEYS.includes(key) || FIELD_LABELS[key];
     if (!placed) throw new Error(`No place to show "${key}" on "${entry.name}" (content.md line ${entry.line})`);
   }
 
   const summary = SUMMARY_KEYS.flatMap((key) => fields.filter((f) => f.key === key).map((f) => f.value)).join(' · ');
   const chips = fields
     .filter((f) => CHIP_KEYS.includes(f.key))
-    .flatMap(({ key, value }) => {
-      if (key === 'jummah') return [{ key, text: value === 'yes' ? 'Jummah' : 'No Jummah', muted: value !== 'yes' }];
-      return splitTags(value).map((text) => ({ key, text, muted: false }));
-    });
+    .flatMap(({ key, value }) => splitTags(value).map((text) => ({ key, text })));
   const facts = fields.filter((f) => FIELD_LABELS[f.key]).map((f) => ({ key: f.key, label: FIELD_LABELS[f.key], value: f.value }));
   const map = fieldMap(entry);
   const link = map.link ? { href: map.link, ...linkText(map.link, map['link-label']) } : null;
@@ -140,7 +137,7 @@ export function rowParts(entry, shared = []) {
     warnings: fields.filter((f) => f.key === 'warning').map((f) => f.value),
     photo: map.photo ? { src: `photos/${map.photo}`, alt: `Photo of ${entry.name}` } : null,
     summary,
-    footnote: FOOTNOTE_KEYS.flatMap((key) => fields.filter((f) => f.key === key).map((f) => f.value)).join(' · '),
+    prayers: map.prayers || map.jummah ? { held: map.prayers ? splitTags(map.prayers) : [], jummah: map.jummah ? map.jummah === 'yes' : null } : null,
     facts,
     link,
     copyAddress,

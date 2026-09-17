@@ -51,6 +51,16 @@ export function validate(doc, { photoExists = (name) => existsSync(path.join(PHO
           error(field.photo.line, `${where} photo "${field.photo.value}" is not in src/photos/. Add it with scripts/add-photo.mjs.`);
         }
       }
+      if (field.prayers) {
+        const names = field.prayers.value.split(' · ').map((p) => p.trim());
+        const known = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+        const unknown = names.filter((p) => !known.includes(p));
+        if (unknown.length) {
+          error(field.prayers.line, `${where} prayers has "${unknown.join('", "')}". Use ${known.join(', ')}, separated by " · ".`);
+        } else if (names.join() !== known.filter((p) => names.includes(p)).join()) {
+          error(field.prayers.line, `${where} prayers must be in the order of the day: ${known.join(' · ')}.`);
+        }
+      }
       if (field['jummah-note'] && !field.jummah) {
         error(field['jummah-note'].line, `${where} has "jummah-note" but no "jummah: yes" or "jummah: no".`);
       }

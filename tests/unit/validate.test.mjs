@@ -29,6 +29,13 @@ test('a photo must be a named file that exists in src/photos', () => {
   assert.match(validate(body('Place Photo.JPEG'), { photoExists: () => true }).errors[0].message, /file name like/);
 });
 
+test('prayers must be known prayer names, in the order of the day', () => {
+  const body = (value) => check(`# Prayer\n### Room\n- prayers: ${value}\n`).errors;
+  assert.deepEqual(body('Dhuhr · Asr · Maghrib · Isha'), []);
+  assert.match(body('Dhuhr · Asar')[0].message, /"Asar"/);
+  assert.match(body('Isha · Dhuhr')[0].message, /order of the day/);
+});
+
 test('a value containing a colon is valid', () => {
   const { errors } = check('# 1. FOOD\n### Place\n- where: Z Core\n- status: certified\n- note: Opens 10:00: usually\n');
   assert.deepEqual(errors, []);
