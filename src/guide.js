@@ -60,7 +60,8 @@ export const FIELD_LABELS = {
 
 // An entry made only of these renders as an always-open card (tips, apps, lists).
 // `logo` is a shop's or app's logo, shown beside the name.
-const INFO_KEYS = ['note', 'link', 'link-label', 'logo'];
+// On an always-open card, `photo` shows full width in the card.
+const INFO_KEYS = ['note', 'link', 'link-label', 'logo', 'photo'];
 
 // Chips belong to their own row; a status shared by every row in a group is
 // shown once above them instead.

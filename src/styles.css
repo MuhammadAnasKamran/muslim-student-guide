@@ -375,11 +375,34 @@ main {
   gap: 0.625rem;
 }
 
+/* A card that goes straight to an outside list: the green box of the app cards. */
+.group-link.group-link-out {
+  grid-template-columns: minmax(0, 1fr);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.group-link.group-link-out .group-title {
+  color: var(--ink);
+}
+
+.info-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.25rem;
+  border-radius: var(--radius-control);
+  background: #FFFFFF;
+}
+
 .group-link {
   position: relative;
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
   align-content: center;
-  gap: 0.25rem;
+  column-gap: 0.875rem;
+  row-gap: 0.25rem;
   min-height: 64px;
   padding: 0.875rem 2.75rem 0.875rem 1rem;
   border: 1px solid var(--glass-border);

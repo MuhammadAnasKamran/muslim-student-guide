@@ -141,7 +141,8 @@ The logic lives in `src/guide.js`.
   says it once.
 - `logo` names a file in `src/photos/` and shows as a small square beside the name, on shop rows
   and app cards. Use the brand's own logo, only to identify it.
-- `photo` names a file in `src/photos/` and shows full width in the row's drop-down.
+- `photo` names a file in `src/photos/` and shows full width in the row's drop-down, or inside an
+  always-open card (note and link).
   Add photos only with `node scripts/add-photo.mjs <file> <name>`, which strips hidden
   metadata (GPS location, camera details, AI provenance). Only publish a photo MUSA took or
   has permission to use: the repo is public.

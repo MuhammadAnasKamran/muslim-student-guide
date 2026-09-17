@@ -97,7 +97,7 @@ test('every entry in content.json is on its screen with its name, facts and link
           const src = await card.locator('img.info-logo, img.row-logo').first().getAttribute('src', { timeout: 2000 });
           if (src !== `photos/${value}`) problems.push(`${entry.name}: logo ${value} not beside its name`);
         } else if (key === 'photo') {
-          const src = await page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large`).first().getAttribute('src', { timeout: 2000 });
+          const src = await page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large, .info-card[data-entry-id="${entry.id}"] > img.info-photo`).first().getAttribute('src', { timeout: 2000 });
           if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not in its drop-down`);
         } else if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);

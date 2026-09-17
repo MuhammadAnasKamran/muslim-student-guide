@@ -93,6 +93,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 ## Prayer Times for HK Mosques
 
 ### Athan Plus
+- logo: logo-athan-plus.jpg
 - link: https://play.google.com/store/apps/details?id=com.masjidal.athanplus
 - TODO: iOS App Store link
 
@@ -185,6 +186,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 ## More in Hong Kong
 
 ### Hong Kong Halal Food List (IUHK)
+- logo: logo-iuhk.jpg
 - note: Full Hong Kong halal list by IUHK. Check its date first.
 - link: https://www.iuhk.org/images/Others/Halah-Food/Halal-List_en.pdf
 
@@ -212,7 +214,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - logo: logo-parknshop.jpg
 - link: https://maps.app.goo.gl/XvX6UypsnyTqaWLs9
 
-### ParknShop (Whampoa)
+### ParknShop (near Hung Hom Halls)
 - status: check-packaging
 - logo: logo-parknshop.jpg
 - link: https://maps.app.goo.gl/VP4dTyGSyXyiVi7v9
@@ -240,4 +242,5 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ### Halal bread
 - note: Garden sandwich bread is certified. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
+- photo: garden-sandwich-bread.jpg
 - link: https://www.garden.com.hk/en/product/hong-kong/retail/bread/sandwich-bread/

@@ -318,17 +318,18 @@ function renderGroup(screenId, blocks, subsection, rows) {
 // The card that opens a group's page: just its name, so the screen reads at a glance.
 // Every halal status and warning shows on the page itself, on the rows.
 function renderGroupLink(screenId, subsection) {
-  return h('a', { class: 'group-link', href: routeFor(screenId) }, h('h2', { class: 'group-title' }, subsection.title));
+  return h('a', { class: 'group-link', href: routeFor(screenId) }, h('span', { class: 'menu-tile' }, groupIcon(subsection.title)), h('h2', { class: 'group-title' }, subsection.title));
 }
 
 // A group that is only a link opens it straight from its card.
 function renderDirectLink(entry) {
-  const { link } = rowParts(entry);
+  const { link, logo } = rowParts(entry);
   const note = entry.fields.find((f) => f.key === 'note')?.value;
+  const title = h('h3', { class: 'group-title' }, entry.name);
   return h(
     'a',
     { class: 'group-link group-link-out', href: link.href, rel: 'noopener', target: '_blank', 'data-entry-id': entry.id },
-    h('h3', { class: 'group-title' }, entry.name),
+    logo ? h('span', { class: 'info-head' }, renderLogo(logo, 'info-logo'), title) : title,
     note ? h('span', { class: 'group-note' }, note) : null,
     h('span', { class: 'link-host' }, link.host),
     h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
@@ -399,7 +400,7 @@ function renderRow(entry, id, parts, head) {
 }
 
 function renderInfoCard(entry, id, context) {
-  const { link, logo } = rowParts(entry);
+  const { link, logo, photo } = rowParts(entry);
   const note = entry.fields.find((f) => f.key === 'note')?.value;
   const title = h('h3', { class: 'info-title' }, entry.name);
   return h(
@@ -408,6 +409,7 @@ function renderInfoCard(entry, id, context) {
     context ? h('span', { class: 'row-context' }, context) : null,
     logo ? h('span', { class: 'info-head' }, renderLogo(logo, 'info-logo'), title) : title,
     note ? h('p', { class: 'info-note' }, note) : null,
+    photo ? h('img', { class: 'info-photo', src: photo.src, alt: photo.alt, loading: 'lazy', decoding: 'async' }) : null,
     link ? renderLink(link) : null,
   );
 }
@@ -568,6 +570,18 @@ const MENU_ICONS = [
   [/grocer|shop|market|store/i, ['M3 9.5h18l-2 10.5H5Z', 'M7.5 9.5 11 3.5', 'M16.5 9.5 13 3.5', 'M9.5 13v3.5', 'M14.5 13v3.5']],
 ];
 const FALLBACK_ICON = ['M5 6.5h14', 'M5 12h14', 'M5 17.5h9'];
+
+// Icons for the group cards on the Halal Food screen, matched on the group's words.
+const GROUP_ICONS = [
+  [/campus|university/i, ['M3 9 12 4l9 5Z', 'M6 11.5v6', 'M10 11.5v6', 'M14 11.5v6', 'M18 11.5v6', 'M4.5 17.5h15', 'M3 20.5h18']],
+  [/hall|residence|dorm/i, ['M3 5.5v14', 'M21 12.5v7', 'M3 12.5h18', 'M3 16h18', 'M5.75 12.5V10.5a1.25 1.25 0 0 1 1.25-1.25h3.5a1.25 1.25 0 0 1 1.25 1.25v2']],
+  [/kitchen|home|cook/i, ['M4.5 10.5h15', 'M6 10.5v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7', 'M3 12.5h3', 'M18 12.5h3', 'M10.75 10.5V8.75h2.5v1.75', 'M9 6.5c0-1 1-1.25 1-2.25', 'M14 6.5c0-1 1-1.25 1-2.25']],
+];
+
+function groupIcon(title) {
+  const match = GROUP_ICONS.find(([pattern]) => pattern.test(title)) ?? MENU_ICONS.find(([pattern]) => pattern.test(title));
+  return svgIcon('menu-icon', match ? match[1] : FALLBACK_ICON);
+}
 
 function menuIcon(title) {
   const match = MENU_ICONS.find(([pattern]) => pattern.test(title));

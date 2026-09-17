@@ -145,6 +145,7 @@ test('entries made of note and link are info cards', () => {
   assert.equal(isInfoCard(entry('Athan Plus', { note: 'Prayer times', link: 'https://play.google.com/x' })), true);
   assert.equal(isInfoCard(entry('Tip', { note: 'Check the pack' })), true);
   assert.equal(isInfoCard(entry('Athan Plus', { link: 'https://play.google.com/x', logo: 'athan-plus.jpg' })), true, 'a logo keeps it an info card');
+  assert.equal(isInfoCard(entry('Halal bread', { note: 'x', link: 'https://x.example', photo: 'bread.jpg' })), true, 'so does a photo');
   assert.deepEqual(rowParts(entry('Taste', { status: 'check-packaging', logo: 'logo-taste.jpg' })).logo, { src: 'photos/logo-taste.jpg' });
   assert.equal(sharedFacts([entry('A', { logo: 'x.jpg' }), entry('B', { logo: 'x.jpg' })]).length, 0, 'every row keeps its own logo');
   assert.equal(isInfoCard(entry('Shop', { note: 'x', address: 'y' })), false);
