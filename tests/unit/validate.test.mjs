@@ -29,6 +29,13 @@ test('a photo must be a named file that exists in src/photos', () => {
   assert.match(validate(body('Place Photo.JPEG'), { photoExists: () => true }).errors[0].message, /file name like/);
 });
 
+test('washrooms must list each floor with known washroom types', () => {
+  const body = (value) => check(`# Washrooms\n### Core C\n- washrooms: ${value}\n`).errors;
+  assert.deepEqual(body('G: female, accessible · 1: male · P: male, female'), []);
+  assert.match(body('G: female + special')[0].message, /"G: female \+ special"/);
+  assert.match(body('3 both')[0].message, /like "G: female, accessible"/);
+});
+
 test('prayers must be known prayer names, in the order of the day', () => {
   const body = (value) => check(`# Prayer\n### Room\n- prayers: ${value}\n`).errors;
   assert.deepEqual(body('Dhuhr · Asr · Maghrib · Isha'), []);

@@ -121,6 +121,8 @@ The logic lives in `src/guide.js`.
   - `prayers` (the prayers held, "Dhuhr · Asr · Maghrib · Isha", only names from the five daily
     prayers, in order) as a list of names, and `jummah` as a highlighted "★ Jummah held here" or a
     plain "No Jummah". A prayer not held is left out, not crossed out;
+  - `washrooms` ("G: female, accessible · 1: male", types male, female, accessible) as one line
+    per floor, each washroom with a drawn symbol and its word;
   - `tags`, `perk` and `delivery` as highlighted chips. A `tags`
     value holds several chips separated by ` · `, so facts read as tags, not sentences;
   - a one-line summary from `tag`, `location`, `where`, `walk`, `district`, `what`, `sells`

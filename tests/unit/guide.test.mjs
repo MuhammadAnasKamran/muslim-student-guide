@@ -9,6 +9,7 @@ import {
   directLinkEntry,
   isInfoCard,
   linkText,
+  parseWashrooms,
   menuItems,
   parentScreen,
   parseRoute,
@@ -159,6 +160,16 @@ test('a photo shows on the row with alt text, and its file name is not searchabl
   assert.equal(rowParts(room).expandable, false, 'a photo alone gives a row nothing to open');
   assert.doesNotMatch(searchText({ entry: room, section: { title: 'Prayer' }, subsection: null }), /jpg/);
   assert.equal(sharedFacts([room, entry('PQ', { photo: 'z302a.jpg' })]).length, 0, 'photos are never shared above a group');
+});
+
+test('washrooms read as floors, each with its washroom types in a fixed order', () => {
+  const core = entry('Core C', { feature: 'Bidet', washrooms: 'G: female, accessible · 1: male · P: male, female' });
+  assert.deepEqual(rowParts(core).washrooms, [
+    { floor: 'G', types: ['female', 'accessible'] },
+    { floor: '1', types: ['male'] },
+    { floor: 'P', types: ['male', 'female'] },
+  ]);
+  assert.deepEqual(parseWashrooms('4: accessible, female'), [{ floor: '4', types: ['female', 'accessible'] }]);
 });
 
 test('page addresses round-trip', () => {

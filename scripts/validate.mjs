@@ -51,6 +51,13 @@ export function validate(doc, { photoExists = (name) => existsSync(path.join(PHO
           error(field.photo.line, `${where} photo "${field.photo.value}" is not in src/photos/. Add it with scripts/add-photo.mjs.`);
         }
       }
+      if (field.washrooms) {
+        for (const part of field.washrooms.value.split(' · ')) {
+          if (!/^[A-Z0-9]{1,3}: (male|female|accessible)(, (male|female|accessible))*$/.test(part.trim())) {
+            error(field.washrooms.line, `${where} washrooms has "${part.trim()}". Write each floor like "G: female, accessible", separated by " · ".`);
+          }
+        }
+      }
       if (field.prayers) {
         const names = field.prayers.value.split(' · ').map((p) => p.trim());
         const known = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];

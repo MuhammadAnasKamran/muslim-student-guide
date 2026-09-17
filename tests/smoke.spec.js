@@ -86,6 +86,13 @@ test('every entry in content.json is on its screen with its name, facts and link
       if (name !== entry.name) problems.push(`name "${name}" should be "${entry.name}"`);
       for (const { key, value } of entry.fields) {
         if (key === 'status' || key === 'jummah' || key === 'prayers') continue;
+        if (key === 'washrooms') {
+          const floors = await card.locator('.row-head .washroom-floor').evaluateAll((rows) =>
+            rows.map((row) => `${row.querySelector('.floor-label').lastChild.textContent}: ${[...row.querySelectorAll('.washroom')].map((w) => w.textContent.toLowerCase()).join(', ')}`),
+          );
+          if (floors.join(' · ') !== value) problems.push(`${entry.name}: washrooms show "${floors.join(' · ')}", not "${value}"`);
+          continue;
+        }
         if (key === 'photo') {
           const src = await card.locator('img.row-photo').getAttribute('src');
           if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);

@@ -32,6 +32,7 @@ export const ENTRY_KEYS = [
   'link',
   'link-label',
   'photo',
+  'washrooms',
 ];
 
 export const META_KEYS = [

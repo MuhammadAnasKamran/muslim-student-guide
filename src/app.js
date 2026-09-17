@@ -4,6 +4,7 @@
 
 import {
   STATUS_LABELS,
+  WASHROOM_TYPES,
   entryContexts,
   directLinkEntry,
   formatDate,
@@ -345,6 +346,7 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
     parts.prayers ? renderPrayers(parts.prayers) : null,
+    parts.washrooms ? renderWashrooms(parts.washrooms) : null,
     ...parts.warnings.map((text) => h('span', { class: 'row-warning' }, text)),
   ];
 
@@ -405,6 +407,23 @@ function renderChip(chip) {
   return h('span', { class: 'chip' }, chip.text);
 }
 
+// Each floor with a symbol and a word for every washroom on it: the word carries the
+// meaning, the symbol makes the list quick to scan.
+function renderWashrooms(floors) {
+  return h(
+    'span',
+    { class: 'washrooms', role: 'list', 'aria-label': 'Washrooms by floor' },
+    ...floors.map(({ floor, types }) =>
+      h(
+        'span',
+        { class: 'washroom-floor', role: 'listitem' },
+        h('span', { class: 'floor-label' }, h('span', { class: 'visually-hidden' }, 'Floor '), floor),
+        h('span', { class: 'washroom-types' }, ...types.map((type) => h('span', { class: `washroom washroom-${type}` }, washroomIcon(type), WASHROOM_TYPES[type]))),
+      ),
+    ),
+  );
+}
+
 // The prayers held, as plain names with a dot, and Jummah on its own highlighted line.
 function renderPrayers({ held, jummah }) {
   return h(
@@ -445,6 +464,26 @@ function svgIcon(className, paths) {
   for (const d of paths) {
     const path = document.createElementNS(SVG_NS, 'path');
     path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+// Washroom symbols in the style of public signage, drawn here: no icon service.
+const WASHROOM_ICONS = {
+  male: { fill: ['M12 1.75a2.25 2.25 0 1 1 0 4.5a2.25 2.25 0 1 1 0-4.5Z', 'M9.75 7.5h4.5A1.75 1.75 0 0 1 16 9.25V15h-1.75v7h-1.5v-6h-1.5v6h-1.5v-7H8V9.25A1.75 1.75 0 0 1 9.75 7.5Z'] },
+  female: { fill: ['M12 1.75a2.25 2.25 0 1 1 0 4.5a2.25 2.25 0 1 1 0-4.5Z', 'M10.1 7.5h3.8l3.35 9h-2.5V22h-1.5v-5.5h-2.5V22h-1.5v-5.5h-2.5Z'] },
+  accessible: { fill: ['M10.5 1.5a2 2 0 1 1 0 4a2 2 0 1 1 0-4Z'], stroke: ['M10.5 7.5v6h5l2.75 5.5 2-1', 'M10.5 10.5h4.5', 'M7.25 11.25a5.25 5.25 0 1 0 7.9 5.6'] },
+};
+
+function washroomIcon(type) {
+  const svg = svgIcon('washroom-icon', WASHROOM_ICONS[type].stroke ?? []);
+  svg.setAttribute('stroke-width', '2');
+  for (const d of WASHROOM_ICONS[type].fill) {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('stroke', 'none');
     svg.append(path);
   }
   return svg;

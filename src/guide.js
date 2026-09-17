@@ -29,7 +29,19 @@ export const PRAYER_KEYS = ['prayers', 'jummah'];
 // sits on the right of the row, visible without tapping.
 // `warning` is a caveat that must be read before acting, like "only these meals
 // are halal": it shows on the row in amber and is never folded away.
-export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning', 'photo'];
+export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning', 'photo', 'washrooms'];
+
+// Washroom types, in the order they show on each floor.
+export const WASHROOM_TYPES = { male: 'Male', female: 'Female', accessible: 'Accessible' };
+
+// "G: female, accessible · 1: male" → [{ floor: 'G', types: ['female', 'accessible'] }, ...]
+export function parseWashrooms(value) {
+  return splitTags(value).map((part) => {
+    const at = part.indexOf(':');
+    const types = part.slice(at + 1).split(',').map((t) => t.trim());
+    return { floor: part.slice(0, at).trim(), types: Object.keys(WASHROOM_TYPES).filter((t) => types.includes(t)) };
+  });
+}
 
 // Everything else is a labelled fact inside the opened row. A key with no home
 // in any of these lists fails loudly when rendered.
@@ -51,7 +63,7 @@ const INFO_KEYS = ['note', 'link', 'link-label'];
 
 // Chips belong to their own row; a status shared by every row in a group is
 // shown once above them instead.
-const NEVER_SHARED = new Set(['photo', 'link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
+const NEVER_SHARED = new Set(['washrooms', 'photo', 'link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
 
 // A `tags` value is several chips: "South Asian meals · Several options daily".
 export function splitTags(value) {
@@ -135,6 +147,7 @@ export function rowParts(entry, shared = []) {
     status: hidden.has('status') ? null : statusOf(entry),
     chips,
     warnings: fields.filter((f) => f.key === 'warning').map((f) => f.value),
+    washrooms: map.washrooms ? parseWashrooms(map.washrooms) : null,
     photo: map.photo ? { src: `photos/${map.photo}`, alt: `Photo of ${entry.name}` } : null,
     summary,
     prayers: map.prayers || map.jummah ? { held: map.prayers ? splitTags(map.prayers) : [], jummah: map.jummah ? map.jummah === 'yes' : null } : null,

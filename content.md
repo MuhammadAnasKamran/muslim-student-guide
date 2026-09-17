@@ -102,10 +102,12 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Core C
 - floors: All floors
 - feature: Bidet
+- washrooms: G: female, accessible · 1: male · P: male, female · 3: male, female · 4: male, female · 5: male · 6: male, female · 7: male, female
 
 ### Core E
 - floors: All floors
 - feature: Bidet
+- washrooms: G: male · 1: female · P: male · 3: male · 4: female, accessible · 5: male · 6: female · 7: female
 
 ---
 
