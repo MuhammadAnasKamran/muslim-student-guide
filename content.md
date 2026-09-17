@@ -149,7 +149,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Hung Hom Halls Canteen
 - where: Hung Hom Halls
 - status: certified-section
-- price: ≈HK$50
 - tags: Chicken thigh curry · Beef brisket curry · Fish cutlet curry
 - warning: Only these 3 meals are halal. Other dishes are not.
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
