@@ -58,8 +58,10 @@ test('every token pair meets WCAG AA', () => {
     ['accent-ink', 'accent', TEXT],
     ['header-ink', 'header-bg', TEXT],
     ['warn-ink', 'warn-bg', TEXT],
-    ['certified-ink', 'certified-bg', TEXT],
-    ['amber-ink', 'amber-bg', TEXT],
+    ['status-green', 'surface', TEXT],
+    ['status-yellow', 'surface', TEXT],
+    ['status-red', 'surface', TEXT],
+    ['status-grey', 'surface', TEXT],
     ['grey-ink', 'grey-bg', TEXT],
     ['control-border', 'surface', NON_TEXT],
     ['accent', 'accent-soft', TEXT], // the Back button's word
@@ -96,6 +98,11 @@ test('text stays readable over the background photograph', () => {
       ['body text on a pane', palette.ink, pane],
       ['muted text on a pane', palette.muted, pane],
       ['link text on a pane', palette.accent, pane],
+      ['certified status on a pane', palette['status-green'], pane],
+      ['section-only status on a pane', palette['status-yellow'], pane],
+      ['check-packaging status on a pane', palette['status-red'], pane],
+      ['community-known status on a pane', palette['status-grey'], pane],
+      ['status above a group, on the page', palette['status-grey'], ground],
     ]) {
       const ratio = contrast(channels(colour), backdrop);
       if (ratio < TEXT) failures.push(`${spot} part of the photo: ${what} is ${ratio.toFixed(2)}`);
@@ -116,9 +123,9 @@ test('page-level text does not use the muted grey', () => {
   }
 });
 
-test('the three status families are visually distinct', () => {
-  const backgrounds = new Set([palette['certified-bg'], palette['amber-bg'], palette['grey-bg']]);
-  assert.equal(backgrounds.size, 3);
+test('the four status colours are distinct, and each status keeps its own word', () => {
+  const colours = new Set(['status-green', 'status-yellow', 'status-red', 'status-grey'].map((name) => palette[name]));
+  assert.equal(colours.size, 4);
 });
 
 test('no !important, webfonts, imports or external URLs', () => {

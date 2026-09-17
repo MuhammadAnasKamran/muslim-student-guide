@@ -26,12 +26,12 @@
   --warn-bg: #33270C;
   --warn-ink: #F6D58E;
   --warn-line: #8E6A1F;
-  --certified-bg: #173B2A;
-  --certified-ink: #A6E3BE;
-  --certified-line: #3F8A62;
-  --amber-bg: #3D2E0F;
-  --amber-ink: #F3CD7A;
-  --amber-line: #8E6A1F;
+  /* Halal status markers, as a dot plus a word: green certified, yellow section only,
+     red check packaging, grey community-known. */
+  --status-green: #86E0A0;
+  --status-yellow: #F5CF5B;
+  --status-red: #FF9A8C;
+  --status-grey: #C9D2CE;
   --grey-bg: #2A302D;
   --grey-ink: #CDD5D1;
   --grey-line: #5E6863;
@@ -413,14 +413,6 @@ main {
 }
 
 
-.status-count {
-  margin-left: 0.125rem;
-  padding-inline: 0.4rem;
-  border-radius: 999px;
-  background: rgb(0 0 0 / 0.22);
-  font-variant-numeric: tabular-nums;
-}
-
 /* On the page background rather than on a pane, so it uses ink for contrast. */
 .intro {
   color: var(--ink);
@@ -548,7 +540,15 @@ main {
   text-transform: uppercase;
 }
 
-.row-badges,
+.row-badges {
+  justify-self: end;
+}
+
+/* With a photo the head has two columns; the status spans both, at the top right. */
+.has-photo > .row-badges {
+  grid-column: 1 / -1;
+}
+
 .row-chips {
   display: flex;
   flex-wrap: wrap;
@@ -618,45 +618,44 @@ main {
 .status {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  min-height: 1.75rem;
-  padding: 0.125rem 0.625rem;
-  border: 1.5px solid var(--grey-line);
-  border-radius: 7px;
-  background: var(--grey-bg);
-  color: var(--grey-ink);
-  font-size: 0.9375rem;
+  gap: 0.4rem;
+  color: var(--status-grey);
+  font-size: 0.875rem;
   font-weight: 800;
   line-height: 1.3;
 }
 
+.status::before {
+  content: "";
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 .status-certified {
-  border-color: var(--certified-line);
-  background: var(--certified-bg);
-  color: var(--certified-ink);
+  color: var(--status-green);
 }
 
-.status-certified::before {
-  content: "✓";
-  content: "✓" / "";
+.status-certified-section {
+  color: var(--status-yellow);
 }
 
-.status-certified-section,
 .status-check-packaging {
-  border-color: var(--amber-line);
-  background: var(--amber-bg);
-  color: var(--amber-ink);
+  color: var(--status-red);
 }
 
-.status-unverified {
-  border-color: var(--grey-line);
-  background: var(--grey-bg);
-  color: var(--grey-ink);
+/* Hollow: community-known, nothing certified. */
+.status-unverified::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px currentColor;
 }
 
-/* Dashed, so "not recorded" never reads as the same thing as "unverified". */
-.status-none {
-  border-style: dashed;
+/* Dashed, so "not recorded" never reads as the same thing as "community-known". */
+.status-none::before {
+  background: transparent;
+  border: 2px dashed currentColor;
 }
 
 .chip {
@@ -892,8 +891,7 @@ main {
   .row-head,
   .entry-link,
   .copy-button,
-  .chip,
-  .status {
+  .chip {
     transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
   }
 

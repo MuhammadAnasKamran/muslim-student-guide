@@ -115,7 +115,6 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Halal by The Forest
 - where: Z Cafe, Z Core
 - status: certified
-- tags: All items halal certified
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/z-cafe/
 
 ### The Forest — VA Student Canteen
@@ -129,21 +128,19 @@ It will tell you about unknown keys, bad status values, and dead links.
 ### Campus vending machine
 - where: VA210
 - status: certified
-- tags: All snacks halal certified · Halal logo on machine
+- tags: Halal logo on machine
 - photo: campus-vending-machine.jpg
 - TODO: official name of this vending machine
 
 ### Pacific Coffee
 - where: X Cafe, X Core
 - status: check-packaging
-- tags: Halal certification on some products
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/x-cafe/
 - TODO: confirm Pacific Coffee is the X Cafe outlet
 
 ### 7-Eleven
 - where: Campus-wide
 - status: check-packaging
-- tags: Halal certification on some products
 - link: https://www.polyu.edu.hk/fo/visitors/campus-wide-facilities/
 - TODO: exact location (a VA room number, to be verified)
 - TODO: list the specific certified instant noodles, juices and snacks if anyone verifies them

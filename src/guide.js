@@ -4,9 +4,9 @@
 // Words for each status. Meanings mirror the table in CLAUDE.md and content.md.
 // Each status keeps its own word: never collapse certified-section into certified.
 export const STATUS_LABELS = {
-  certified: { label: 'Halal certified', meaning: 'Holds halal certification.' },
-  'certified-section': { label: 'Certified section only', meaning: 'Only part of the shop or menu is certified.' },
-  'check-packaging': { label: 'Check packaging before buying', meaning: 'Some products are certified. Look for the halal logo.' },
+  certified: { label: 'Certified', meaning: 'Holds halal certification.' },
+  'certified-section': { label: 'Section only', meaning: 'Only part of the shop or menu is halal certified.' },
+  'check-packaging': { label: 'Check packaging', meaning: 'Some products are halal certified. Look for the logo before buying.' },
   unverified: { label: 'Community-known', meaning: 'Community-known. Not endorsed or checked by MUSA.' },
 };
 

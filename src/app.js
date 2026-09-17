@@ -337,9 +337,10 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
   const parts = rowParts(entry, shared);
   // Status first, then the name, then tags: the name stays easy to find on rows
   // carrying several chips.
+  // The halal status sits at the top right of the card, above the name and the photo.
+  const status = parts.status ? h('span', { class: 'row-badges' }, renderStatus(parts.status)) : null;
   const head = [
     context ? h('span', { class: 'row-context' }, context) : null,
-    parts.status ? h('span', { class: 'row-badges' }, renderStatus(parts.status)) : null,
     h('h3', { class: 'row-name' }, entry.name),
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
@@ -349,7 +350,7 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
 
   // A photo sits to the right of the text, so the head becomes two columns.
   const headClass = parts.photo ? 'row-head has-photo' : 'row-head';
-  const headParts = parts.photo ? [h('span', { class: 'row-text' }, ...head), renderPhoto(parts.photo)] : head;
+  const headParts = [status, ...(parts.photo ? [h('span', { class: 'row-text' }, ...head), renderPhoto(parts.photo)] : head)];
 
   if (!parts.expandable) {
     return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: headClass }, ...headParts));
@@ -395,14 +396,9 @@ function renderShared(shared) {
   return node;
 }
 
-function renderStatus(status, count) {
-  return h(
-    'span',
-    { class: `status status-${status.key}` },
-    h('span', { class: 'visually-hidden' }, 'Halal status: '),
-    status.label,
-    count ? h('span', { class: 'status-count' }, h('span', { class: 'visually-hidden' }, ', '), String(count)) : null,
-  );
+// A coloured dot and a word: the word carries the meaning, so colour is never alone.
+function renderStatus(status) {
+  return h('span', { class: `status status-${status.key}` }, h('span', { class: 'visually-hidden' }, 'Halal status: '), status.label);
 }
 
 function renderChip(chip) {

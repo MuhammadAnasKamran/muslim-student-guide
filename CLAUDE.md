@@ -117,7 +117,7 @@ The logic lives in `src/guide.js`.
 - Each `#` section is a button on the home menu and its own screen, in file order.
 - Each `##` subsection is a heading on that screen.
 - Each `###` entry is a row. Without tapping, a row shows:
-  - the name and the halal status;
+  - the name, and the halal status as a coloured dot plus its word at the top right;
   - `prayers` (which prayers are held, "Dhuhr · Asr · Maghrib · Isha") as a light line under the chips;
   - `jummah`, `tags`, `perk` and `delivery` as highlighted chips. A `tags`
     value holds several chips separated by ` · `, so facts read as tags, not sentences;
@@ -221,9 +221,10 @@ The dark palette in use:
 | Muted | `#A3B3AB` |
 | Background | `#111916` |
 | Header | `#0F2A24` |
-| Certified | green tint |
-| Check packaging / certified section | amber tint |
-| Unverified | neutral grey |
+| Certified | green dot + "Certified" |
+| Section only (`certified-section`) | yellow dot + "Section only" |
+| Check packaging | red dot + "Check packaging" |
+| Unverified | grey hollow dot + "Community-known" |
 
 MUSA's brand green `#12695A` is the accent for light mode, which returns with it.
 

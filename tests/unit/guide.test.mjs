@@ -96,7 +96,7 @@ test('a food row with no status says so, and shows its perk as a chip', () => {
   assert.deepEqual(parts.chips.map((c) => c.text), ['Student discount']);
   assert.equal(parts.summary, '5 min');
   assert.equal(parts.link.text, 'Open in Google Maps');
-  assert.equal(rowParts(entry('F', { where: 'VA210', status: 'certified-section' })).status.label, 'Certified section only');
+  assert.equal(rowParts(entry('F', { where: 'VA210', status: 'certified-section' })).status.label, 'Section only');
 });
 
 test('Copy address appears only when there is no map link; rows with nothing more do not open', () => {
