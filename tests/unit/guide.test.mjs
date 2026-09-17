@@ -154,10 +154,10 @@ test('only Google Maps links are marked as maps, so only they get the pin', () =
   assert.equal(linkText('https://maps.app.goo.gl/x').whatsapp, false);
 });
 
-test('a photo shows on the row with alt text, and its file name is not searchable', () => {
+test('a photo sits in the drop-down with alt text, and its file name is not searchable', () => {
   const room = entry('Z302a', { tags: '4 daily prayers', photo: 'z302a.jpg' });
   assert.deepEqual(rowParts(room).photo, { src: 'photos/z302a.jpg', alt: 'Photo of Z302a' });
-  assert.equal(rowParts(room).expandable, false, 'a photo alone gives a row nothing to open');
+  assert.equal(rowParts(room).expandable, true, 'the photo is in the drop-down, so the row opens');
   assert.doesNotMatch(searchText({ entry: room, section: { title: 'Prayer' }, subsection: null }), /jpg/);
   assert.equal(sharedFacts([room, entry('PQ', { photo: 'z302a.jpg' })]).length, 0, 'photos are never shared above a group');
 });
@@ -170,6 +170,15 @@ test('washrooms read as floors, each with its washroom types in a fixed order', 
     { floor: 'P', types: ['male', 'female'] },
   ]);
   assert.deepEqual(parseWashrooms('4: accessible, female'), [{ floor: '4', types: ['female', 'accessible'] }]);
+});
+
+test('a labelled link stays on the row; an unlabelled one waits in the drop-down', () => {
+  const labelled = rowParts(entry('Z302a', { prayers: 'Dhuhr', link: 'https://x.example', 'link-label': 'Live prayer times' }));
+  assert.equal(labelled.link.onRow, true);
+  assert.equal(labelled.expandable, false, 'with its link on the row, nothing is left to open');
+  const plain = rowParts(entry('Cafe', { where: 'Z Core', link: 'https://x.example' }));
+  assert.equal(plain.link.onRow, false);
+  assert.equal(plain.expandable, true);
 });
 
 test('page addresses round-trip', () => {

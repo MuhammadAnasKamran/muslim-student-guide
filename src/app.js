@@ -286,9 +286,10 @@ function renderGroup(screenId, blocks, subsection, rows) {
       sharedShown = true;
     }
     const node = renderEntry(block, { shared, routable: true });
-    if (node.tagName === 'DETAILS') {
-      rows.set(block.id, node);
-      wireRow(node, screenId, block.id);
+    const row = node.matches('details') ? node : node.querySelector(':scope > details.row');
+    if (row) {
+      rows.set(block.id, row);
+      wireRow(row, screenId, block.id);
     }
     group.append(node);
   }
@@ -336,13 +337,10 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
   if (isInfoCard(entry)) return renderInfoCard(entry, id, context);
 
   const parts = rowParts(entry, shared);
-  // Status first, then the name, then tags: the name stays easy to find on rows
-  // carrying several chips.
-  // The halal status sits at the top right of the card, above the name and the photo.
-  const status = parts.status ? h('span', { class: 'row-badges' }, renderStatus(parts.status)) : null;
+  // The name and the halal status share the first line: name on the left, status on the right.
   const head = [
     context ? h('span', { class: 'row-context' }, context) : null,
-    h('h3', { class: 'row-name' }, entry.name),
+    h('span', { class: 'row-title' }, h('h3', { class: 'row-name' }, entry.name), parts.status ? renderStatus(parts.status) : null),
     parts.summary ? h('span', { class: 'row-summary' }, parts.summary) : null,
     parts.chips.length ? h('span', { class: 'row-chips' }, ...parts.chips.map(renderChip)) : null,
     parts.prayers ? renderPrayers(parts.prayers) : null,
@@ -350,28 +348,26 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
     ...parts.warnings.map((text) => h('span', { class: 'row-warning' }, text)),
   ];
 
-  // A photo sits to the right of the text, so the head becomes two columns.
-  const headClass = parts.photo ? 'row-head has-photo' : 'row-head';
-  const headParts = [status, ...(parts.photo ? [h('span', { class: 'row-text' }, ...head), renderPhoto(parts.photo)] : head)];
+  const row = renderRow(entry, id, parts, head);
+  if (!parts.link?.onRow) return row;
+  // A labelled link stays on the card, below the part that opens.
+  return h('div', { class: 'row-card' }, row, h('div', { class: 'row-link' }, renderLink(parts.link)));
+}
 
+function renderRow(entry, id, parts, head) {
   if (!parts.expandable) {
-    return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: headClass }, ...headParts));
+    return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: 'row-head' }, ...head));
   }
 
   const body = h('div', { class: 'row-body' });
-  // Opened, the photo shows full width: a menu board can't be read as a thumbnail.
+  // Photos live in the drop-down, full width: a menu board can't be read as a thumbnail.
   if (parts.photo) body.append(h('img', { class: 'row-photo-large', src: parts.photo.src, alt: parts.photo.alt, loading: 'lazy', decoding: 'async' }));
   if (parts.facts.length) {
     body.append(h('dl', { class: 'facts' }, ...parts.facts.map((f) => h('div', { class: 'fact' }, h('dt', {}, f.label), h('dd', {}, f.value)))));
   }
-  if (parts.link) body.append(renderLink(parts.link));
+  if (parts.link && !parts.link.onRow) body.append(renderLink(parts.link));
   if (parts.copyAddress) body.append(renderCopyButton(parts.copyAddress));
-  return h('details', { class: 'row', id, 'data-entry-id': entry.id }, h('summary', { class: headClass }, ...headParts), body);
-}
-
-// Served from src/photos/, never from a third party.
-function renderPhoto({ src, alt }) {
-  return h('img', { class: 'row-photo', src, alt, width: '96', height: '96', loading: 'lazy', decoding: 'async' });
+  return h('details', { class: 'row', id, 'data-entry-id': entry.id }, h('summary', { class: 'row-head' }, ...head), body);
 }
 
 function renderInfoCard(entry, id, context) {

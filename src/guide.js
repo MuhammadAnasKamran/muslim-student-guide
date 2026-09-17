@@ -140,7 +140,8 @@ export function rowParts(entry, shared = []) {
     .flatMap(({ key, value }) => splitTags(value).map((text) => ({ key, text })));
   const facts = fields.filter((f) => FIELD_LABELS[f.key]).map((f) => ({ key: f.key, label: FIELD_LABELS[f.key], value: f.value }));
   const map = fieldMap(entry);
-  const link = map.link ? { href: map.link, ...linkText(map.link, map['link-label']) } : null;
+  // A link with its own label ("Live prayer times") is worth showing without tapping.
+  const link = map.link ? { href: map.link, onRow: Boolean(map['link-label']), ...linkText(map.link, map['link-label']) } : null;
   const copyAddress = !link && map.address && !hidden.has('address') ? map.address : null;
 
   return {
@@ -154,7 +155,7 @@ export function rowParts(entry, shared = []) {
     facts,
     link,
     copyAddress,
-    expandable: facts.length > 0 || Boolean(link) || Boolean(copyAddress),
+    expandable: facts.length > 0 || Boolean(link && !link.onRow) || Boolean(copyAddress) || Boolean(map.photo),
   };
 }
 

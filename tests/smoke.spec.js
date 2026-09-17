@@ -94,7 +94,7 @@ test('every entry in content.json is on its screen with its name, facts and link
           continue;
         }
         if (key === 'photo') {
-          const src = await card.locator('img.row-photo').getAttribute('src');
+          const src = await page.locator(`details[data-entry-id="${entry.id}"] > .row-body img.row-photo-large`).first().getAttribute('src');
           if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);
         } else if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
@@ -283,16 +283,15 @@ test('a row name lines up with its arrow, and the background stays put while scr
 });
 
 test('pressing a card keeps its rounded corners, and buttons match the card shape', async ({ page }) => {
-  await page.goto('/#/prayer-facilities/z302a');
+  await page.goto('/#/prayer-facilities/pq502a');
   const view = screenView(page, 'prayer-facilities');
   await expect(view.locator('details.row[open]').first()).toBeVisible();
 
   const shapes = await page.evaluate(() => {
     const radius = (el) => parseFloat(getComputedStyle(el).borderTopLeftRadius);
     const openRow = document.querySelector('[data-screen="prayer-facilities"] details.row[open]');
-    // Z302a is the only row that opens on this screen, so take a closed one from anywhere.
     const closedRow = document.querySelector('details.row:not([open])');
-    const link = openRow.querySelector('.entry-link');
+    const link = document.querySelector('[data-screen="prayer-facilities"] .entry-link');
     return {
       tapFlash: getComputedStyle(document.documentElement).webkitTapHighlightColor,
       row: radius(openRow),
@@ -403,7 +402,7 @@ test('no tap target is smaller than 44px on any screen', async ({ page }) => {
   expect(small).toEqual([]);
 });
 
-test('a photo shows on the right of its row without tapping, and loads from this site', async ({ page }) => {
+test('a photo waits in the drop-down, not on the closed row, and loads from this site', async ({ page }) => {
   const { doc, screens } = load();
   let target = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry }))).find(({ entry }) => entry.fields.some((f) => f.key === 'photo'));
   if (!target) {
@@ -414,14 +413,25 @@ test('a photo shows on the right of its row without tapping, and loads from this
     await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
   }
   await page.goto(`/#/${target.screenId}`);
-  const row = screenView(page, target.screenId).locator(`[data-entry-id="${target.entry.id}"]`);
-  const photo = row.locator('.row-head img.row-photo');
+  const row = screenView(page, target.screenId).locator(`details[data-entry-id="${target.entry.id}"]`);
+  await expect(row.locator('img')).toBeHidden();
+  await row.locator('summary').click();
+  const photo = row.locator('.row-body img.row-photo-large');
   await expect(photo).toBeVisible();
   await expect(photo).toHaveAttribute('alt', `Photo of ${target.entry.name}`);
-  expect(await photo.evaluate((img) => img.complete && img.naturalWidth > 0), 'the photo file loads').toBe(true);
-  const [name, image] = await Promise.all([row.locator('h3').boundingBox(), photo.boundingBox()]);
-  expect(image.x, 'the photo sits to the right of the name').toBeGreaterThan(name.x);
-  expect(image.width).toBeGreaterThanOrEqual(80);
+  await expect.poll(() => photo.evaluate((img) => img.complete && img.naturalWidth > 0), { message: 'the photo file loads' }).toBe(true);
+});
+
+test('Live prayer times shows on the Z302a card without tapping', async ({ page }) => {
+  const { entries } = load();
+  const labelled = entries.filter((e) => e.fields.some((f) => f.key === 'link-label'));
+  expect(labelled.length).toBeGreaterThan(0);
+  await page.goto('/#/prayer-facilities');
+  for (const entry of labelled) {
+    const href = entry.fields.find((f) => f.key === 'link').value;
+    const card = page.locator(`.row-card:has(> [data-entry-id="${entry.id}"])`);
+    await expect(card.locator(`:scope > .row-link a[href="${href}"]`)).toBeVisible();
+  }
 });
 
 test('opening a row with a photo shows the photo full width', async ({ page }) => {

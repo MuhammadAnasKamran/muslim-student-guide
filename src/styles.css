@@ -446,7 +446,7 @@ main {
   display: grid;
   /* Short rows (a name only) centre on the arrow instead of sitting at the top. */
   align-content: center;
-  gap: 0.25rem;
+  gap: 0.125rem;
   min-height: 56px;
   padding: 0.75rem 2.75rem 0.75rem 0.875rem;
   list-style: none;
@@ -465,15 +465,38 @@ main {
   border-radius: calc(var(--radius-card) - 1px) calc(var(--radius-card) - 1px) 0 0;
 }
 
-.row-head.has-photo {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 0.75rem;
+/* A card with a link that stays visible: the card styles move to the wrapper. */
+.row-card {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  background: var(--glass-fill);
+  box-shadow: inset 0 1px 0 var(--glass-sheen), inset 0 -1px 0 var(--glass-underglow), var(--glass-shadow);
 }
 
-.row-text {
-  display: grid;
-  gap: 0.25rem;
+.row-card > .row {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.row-link {
+  padding: 0 0.875rem 0.875rem;
+}
+
+.row-card > .row[open] + .row-link {
+  padding-top: 0;
+}
+
+/* Name on the left, halal status on the right, on the same line. */
+.row-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+.row-title > .status {
+  flex: none;
 }
 
 .row-photo-large {
@@ -483,22 +506,9 @@ main {
   border-radius: var(--radius-control);
 }
 
-.row-photo {
-  width: 6rem;
-  height: 6rem;
-  border-radius: var(--radius-control);
-  object-fit: cover;
-  background: var(--accent-soft);
-}
-
 .row-flat .row-head {
   padding-right: 0.875rem;
   cursor: default;
-}
-
-/* Photos line up down the screen whether or not the row opens. */
-.row-flat .row-head.has-photo {
-  padding-right: 2.75rem;
 }
 
 .row-head::-webkit-details-marker {
@@ -535,15 +545,6 @@ main {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.row-badges {
-  justify-self: end;
-}
-
-/* With a photo the head has two columns; the status spans both, at the top right. */
-.has-photo > .row-badges {
-  grid-column: 1 / -1;
 }
 
 .row-chips {
