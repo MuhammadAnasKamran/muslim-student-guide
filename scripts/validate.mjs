@@ -4,13 +4,16 @@
 //
 // Usage: node scripts/validate.mjs [content.md]
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ROOT, countEntries, entriesOf, formatProblems, parseContent } from './parse.mjs';
 import { ENTRY_KEYS, META_KEYS, PLACEHOLDER, STATUSES } from './schema.mjs';
 
-export function validate(doc) {
+const PHOTO_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'photos');
+
+// photoExists is swappable so tests don't depend on files in src/photos.
+export function validate(doc, { photoExists = (name) => existsSync(path.join(PHOTO_DIR, name)) } = {}) {
   const errors = [...doc.problems];
   const warnings = [];
   const error = (line, message) => errors.push({ line, message });
@@ -40,6 +43,13 @@ export function validate(doc) {
       }
       if (field['link-label'] && !field.link) {
         error(field['link-label'].line, `${where} has "link-label" but no "link".`);
+      }
+      if (field.photo) {
+        if (!/^[a-z0-9-]+\.jpg$/.test(field.photo.value)) {
+          error(field.photo.line, `${where} photo "${field.photo.value}" must be a file name like "z302a.jpg". Add it with scripts/add-photo.mjs.`);
+        } else if (!photoExists(field.photo.value)) {
+          error(field.photo.line, `${where} photo "${field.photo.value}" is not in src/photos/. Add it with scripts/add-photo.mjs.`);
+        }
       }
       if (field['jummah-note'] && !field.jummah) {
         error(field['jummah-note'].line, `${where} has "jummah-note" but no "jummah: yes" or "jummah: no".`);

@@ -18,6 +18,17 @@ test('a well-formed entry passes', () => {
   assert.deepEqual(warnings, []);
 });
 
+test('a photo must be a named file that exists in src/photos', () => {
+  const body = (value) => parseContent(`${HEADER}# 1. FOOD\n### Place\n- where: Z Core\n- status: certified\n- photo: ${value}\n`);
+  assert.deepEqual(validate(body('place.jpg'), { photoExists: () => true }).errors, []);
+  const missing = validate(body('place.jpg'), { photoExists: () => false }).errors;
+  assert.equal(missing.length, 1);
+  assert.match(missing[0].message, /not in src\/photos/);
+  assert.equal(missing[0].line, 8);
+  assert.match(validate(body('../secret.jpg'), { photoExists: () => true }).errors[0].message, /file name like/);
+  assert.match(validate(body('Place Photo.JPEG'), { photoExists: () => true }).errors[0].message, /file name like/);
+});
+
 test('a value containing a colon is valid', () => {
   const { errors } = check('# 1. FOOD\n### Place\n- where: Z Core\n- status: certified\n- note: Opens 10:00: usually\n');
   assert.deepEqual(errors, []);

@@ -131,6 +131,10 @@ The logic lives in `src/guide.js`.
 - When every row under a heading has the same value for a field, that value shows once
   above the rows as chips instead of on each one. This includes `status`: where a whole
   group shares one, the badge sits above the group, still visible without tapping.
+- `photo` names a file in `src/photos/` and shows on the right of the row, without tapping.
+  Add photos only with `node scripts/add-photo.mjs <file> <name>`, which strips hidden
+  metadata (GPS location, camera details, AI provenance). Only publish a photo MUSA took or
+  has permission to use: the repo is public.
 - Map links carry a pin icon drawn in the page. Never load map images from a third party,
   and never build a map URL that isn't in `content.md`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
@@ -152,11 +156,13 @@ scripts/
   validate.mjs          schema, status vocabulary, TODO report
   schema.mjs            allowed keys and statuses
   check-links.mjs       every URL still resolves
+  add-photo.mjs         copy a photo into src/photos/ with its metadata stripped
   dev.mjs               local server
   measure-background.mjs  brightness of the background photo, for the contrast test
 src/
   index.html
   background.jpg        background photograph
+  photos/               entry photos, named in content.md
   app.js                home menu, screens, rows, search, Back button
   guide.js              how entries render; shared with the tests
   styles.css

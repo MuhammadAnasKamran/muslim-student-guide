@@ -86,7 +86,10 @@ test('every entry in content.json is on its screen with its name, facts and link
       if (name !== entry.name) problems.push(`name "${name}" should be "${entry.name}"`);
       for (const { key, value } of entry.fields) {
         if (key === 'status' || key === 'jummah') continue;
-        if (key === 'link') {
+        if (key === 'photo') {
+          const src = await card.locator('.row-head img.row-photo').getAttribute('src');
+          if (src !== `photos/${value}`) problems.push(`${entry.name}: photo ${value} not on its row`);
+        } else if (key === 'link') {
           if (!hrefs.includes(value)) problems.push(`${entry.name}: link not on screen`);
         } else if (key === 'tags') {
           for (const tag of value.split(' · ')) {
@@ -353,6 +356,27 @@ test('no tap target is smaller than 44px on any screen', async ({ page }) => {
     small.push(...(await measure()).map((box) => ({ ...box, screen: title })));
   }
   expect(small).toEqual([]);
+});
+
+test('a photo shows on the right of its row without tapping, and loads from this site', async ({ page }) => {
+  const { doc, screens } = load();
+  let target = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry }))).find(({ entry }) => entry.fields.some((f) => f.key === 'photo'));
+  if (!target) {
+    // No entry has a photo yet: serve a copy of content.json giving one row the
+    // background photo, so the layout stays tested.
+    target = screens.flatMap(({ id, entries }) => entries.map((entry) => ({ screenId: id, entry })))[0];
+    for (const block of walk(doc)) if (block.id === target.entry.id) block.fields.push({ key: 'photo', value: '../background.jpg' });
+    await page.route('**/content.json', (route) => route.fulfill({ json: doc }));
+  }
+  await page.goto(`/#/${target.screenId}`);
+  const row = screenView(page, target.screenId).locator(`[data-entry-id="${target.entry.id}"]`);
+  const photo = row.locator('.row-head img.row-photo');
+  await expect(photo).toBeVisible();
+  await expect(photo).toHaveAttribute('alt', `Photo of ${target.entry.name}`);
+  expect(await photo.evaluate((img) => img.complete && img.naturalWidth > 0), 'the photo file loads').toBe(true);
+  const [name, image] = await Promise.all([row.locator('h3').boundingBox(), photo.boundingBox()]);
+  expect(image.x, 'the photo sits to the right of the name').toBeGreaterThan(name.x);
+  expect(image.width).toBeGreaterThanOrEqual(80);
 });
 
 test.describe('copy address', () => {

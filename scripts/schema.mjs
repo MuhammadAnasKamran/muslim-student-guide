@@ -31,6 +31,7 @@ export const ENTRY_KEYS = [
   'notes',
   'link',
   'link-label',
+  'photo',
 ];
 
 export const META_KEYS = [

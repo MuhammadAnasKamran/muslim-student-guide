@@ -25,10 +25,11 @@ export const CHIP_KEYS = ['jummah', 'tags', 'perk', 'delivery'];
 // "Dhuhr · Asr · Maghrib · Isha".
 export const FOOTNOTE_KEYS = ['prayers'];
 
-// Rendered in their own way: the status badge and the link button.
+// Rendered in their own way: the status badge, the link button and the photo, which
+// sits on the right of the row, visible without tapping.
 // `warning` is a caveat that must be read before acting, like "only these meals
 // are halal": it shows on the row in amber and is never folded away.
-export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning'];
+export const SPECIAL_KEYS = ['status', 'link', 'link-label', 'warning', 'photo'];
 
 // Everything else is a labelled fact inside the opened row. A key with no home
 // in any of these lists fails loudly when rendered.
@@ -50,7 +51,7 @@ const INFO_KEYS = ['note', 'link', 'link-label'];
 
 // Chips belong to their own row; a status shared by every row in a group is
 // shown once above them instead.
-const NEVER_SHARED = new Set(['link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
+const NEVER_SHARED = new Set(['photo', 'link', 'link-label', 'jummah', 'jummah-note', 'prayers', 'tags', 'perk', 'delivery', 'warning']);
 
 // A `tags` value is several chips: "South Asian meals · Several options daily".
 export function splitTags(value) {
@@ -137,6 +138,7 @@ export function rowParts(entry, shared = []) {
     status: hidden.has('status') ? null : statusOf(entry),
     chips,
     warnings: fields.filter((f) => f.key === 'warning').map((f) => f.value),
+    photo: map.photo ? { src: `photos/${map.photo}`, alt: `Photo of ${entry.name}` } : null,
     summary,
     footnote: FOOTNOTE_KEYS.flatMap((key) => fields.filter((f) => f.key === key).map((f) => f.value)).join(' · '),
     facts,
@@ -207,7 +209,7 @@ export function routeFor(screen, entry) {
 export function searchText({ entry, section, subsection }) {
   const parts = [section.title, subsection?.title, entry.name, statusOf(entry)?.label];
   for (const { key, value } of entry.fields) {
-    if (key === 'link' || key === 'status') continue;
+    if (key === 'link' || key === 'status' || key === 'photo') continue;
     // The row reads "Jummah", so a search for "jummah" should find it.
     if (key === 'jummah') parts.push(value === 'yes' ? 'Jummah' : '');
     else parts.push(value);

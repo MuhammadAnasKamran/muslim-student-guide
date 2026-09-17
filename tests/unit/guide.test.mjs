@@ -147,6 +147,14 @@ test('only Google Maps links are marked as maps, so only they get the pin', () =
   assert.equal(linkText('https://chat.whatsapp.com/x').map, false);
 });
 
+test('a photo shows on the row with alt text, and its file name is not searchable', () => {
+  const room = entry('Z302a', { tags: '4 daily prayers', photo: 'z302a.jpg' });
+  assert.deepEqual(rowParts(room).photo, { src: 'photos/z302a.jpg', alt: 'Photo of Z302a' });
+  assert.equal(rowParts(room).expandable, false, 'a photo alone gives a row nothing to open');
+  assert.doesNotMatch(searchText({ entry: room, section: { title: 'Prayer' }, subsection: null }), /jpg/);
+  assert.equal(sharedFacts([room, entry('PQ', { photo: 'z302a.jpg' })]).length, 0, 'photos are never shared above a group');
+});
+
 test('page addresses round-trip', () => {
   assert.deepEqual(parseRoute(''), { screen: null, entry: null });
   assert.deepEqual(parseRoute('#/'), { screen: null, entry: null });

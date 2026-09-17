@@ -347,8 +347,12 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
     ...parts.warnings.map((text) => h('span', { class: 'row-warning' }, text)),
   ];
 
+  // A photo sits to the right of the text, so the head becomes two columns.
+  const headClass = parts.photo ? 'row-head has-photo' : 'row-head';
+  const headParts = parts.photo ? [h('span', { class: 'row-text' }, ...head), renderPhoto(parts.photo)] : head;
+
   if (!parts.expandable) {
-    return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: 'row-head' }, ...head));
+    return h('div', { class: 'row row-flat', id, 'data-entry-id': entry.id }, h('div', { class: headClass }, ...headParts));
   }
 
   const body = h('div', { class: 'row-body' });
@@ -357,7 +361,12 @@ function renderEntry(entry, { shared = [], routable = false, context = null } = 
   }
   if (parts.link) body.append(renderLink(parts.link));
   if (parts.copyAddress) body.append(renderCopyButton(parts.copyAddress));
-  return h('details', { class: 'row', id, 'data-entry-id': entry.id }, h('summary', { class: 'row-head' }, ...head), body);
+  return h('details', { class: 'row', id, 'data-entry-id': entry.id }, h('summary', { class: headClass }, ...headParts), body);
+}
+
+// Served from src/photos/, never from a third party.
+function renderPhoto({ src, alt }) {
+  return h('img', { class: 'row-photo', src, alt, width: '96', height: '96', loading: 'lazy', decoding: 'async' });
 }
 
 function renderInfoCard(entry, id, context) {

@@ -8,3 +8,7 @@ test-results/
 playwright-report/
 link-report.md
 .DS_Store
+
+# Raw photos dropped in by the committee. Publish them only through
+# scripts/add-photo.mjs into src/photos/, once permission is confirmed.
+Pictures/
