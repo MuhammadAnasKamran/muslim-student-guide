@@ -137,10 +137,9 @@ It will tell you about unknown keys, bad status values, and dead links.
 - TODO: confirm Pacific Coffee is the X Cafe outlet
 
 ### 7-Eleven
-- where: Campus-wide
+- where: P/F, VA
 - status: check-packaging
 - link: https://www.polyu.edu.hk/fo/visitors/campus-wide-facilities/
-- TODO: exact location (a VA room number, to be verified)
 - TODO: list the specific certified instant noodles, juices and snacks if anyone verifies them
 
 ## Halls
