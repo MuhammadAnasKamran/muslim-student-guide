@@ -5,9 +5,9 @@
 import {
   STATUS_LABELS,
   entryContexts,
+  directLinkEntry,
   formatDate,
   groupScreenId,
-  groupSummary,
   hasGroupPages,
   isInfoCard,
   menuItems,
@@ -227,12 +227,14 @@ function clearSearch() {
 function renderScreen(section) {
   const node = h('div', { class: 'view', 'data-screen': section.id, hidden: true });
   const rows = new Map();
-  const legend = renderLegend(entriesIn(section.blocks, ...section.subsections.map((sub) => sub.blocks)));
+  const groupPages = hasGroupPages(section);
+  // With group pages, each page carries its own legend and this screen stays plain.
+  const legend = renderLegend(entriesIn(section.blocks, ...(groupPages ? [] : section.subsections.map((sub) => sub.blocks))));
   if (legend) node.append(legend);
   if (section.blocks.length) node.append(renderGroup(section.id, section.blocks, null, rows));
   view.screens.set(section.id, { title: section.title, node, rows });
 
-  if (!hasGroupPages(section)) {
+  if (!groupPages) {
     for (const subsection of section.subsections) node.append(renderGroup(section.id, subsection.blocks, subsection, rows));
     return [node];
   }
@@ -240,6 +242,11 @@ function renderScreen(section) {
   const pages = [];
   const links = h('nav', { class: 'group-links', 'aria-label': section.title });
   for (const subsection of section.subsections) {
+    const direct = directLinkEntry(subsection);
+    if (direct) {
+      links.append(renderDirectLink(direct));
+      continue;
+    }
     const id = groupScreenId(section, subsection);
     links.append(renderGroupLink(id, subsection));
     const page = h('div', { class: 'view', 'data-screen': id, hidden: true });
@@ -287,23 +294,24 @@ function renderGroup(screenId, blocks, subsection, rows) {
   return group;
 }
 
-// The card that opens a group's page: the title, how many listings, each halal status
-// with a count, and any warning. Nothing a student needs to decide waits behind the tap.
+// The card that opens a group's page: just its name, so the screen reads at a glance.
+// Every halal status and warning shows on the page itself, on the rows.
 function renderGroupLink(screenId, subsection) {
-  const { total, statuses } = groupSummary(entriesIn(subsection.blocks));
-  const link = h(
+  return h('a', { class: 'group-link', href: routeFor(screenId) }, h('h2', { class: 'group-title' }, subsection.title));
+}
+
+// A group that is only a link opens it straight from its card.
+function renderDirectLink(entry) {
+  const { link } = rowParts(entry);
+  const note = entry.fields.find((f) => f.key === 'note')?.value;
+  return h(
     'a',
-    { class: 'group-link', href: routeFor(screenId) },
-    h('h2', { class: 'group-title' }, subsection.title),
-    h('span', { class: 'group-count' }, `${total} ${total === 1 ? 'listing' : 'listings'}`),
+    { class: 'group-link group-link-out', href: link.href, rel: 'noopener', target: '_blank', 'data-entry-id': entry.id },
+    h('h3', { class: 'group-title' }, entry.name),
+    note ? h('span', { class: 'group-note' }, note) : null,
+    h('span', { class: 'link-host' }, link.host),
+    h('span', { class: 'visually-hidden' }, ' (opens in a new tab)'),
   );
-  if (statuses.length) link.append(h('span', { class: 'group-statuses' }, ...statuses.map((status) => renderStatus(status, status.count))));
-  for (const block of subsection.blocks) {
-    if (block.type === 'prose' && block.kind === 'blockquote') {
-      link.append(h('span', { class: 'alert group-alert' }, ...renderRuns(block.runs)));
-    }
-  }
-  return link;
 }
 
 function renderProse(block) {

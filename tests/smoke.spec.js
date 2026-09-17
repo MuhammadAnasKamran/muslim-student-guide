@@ -2,7 +2,7 @@
 
 import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { STATUS_LABELS, STATUS_NOT_RECORDED, groupScreenId, hasGroupPages } from '../src/guide.js';
+import { STATUS_LABELS, STATUS_NOT_RECORDED, directLinkEntry, groupScreenId, hasGroupPages } from '../src/guide.js';
 
 // Every screen the app renders: one per section, and on sections with group pages,
 // one per group as well. `id` is the screen's address and data-screen value.
@@ -15,9 +15,13 @@ function load() {
   const sections = doc.sections.filter((s) => s.published);
   const screens = sections.flatMap((section) => {
     if (!hasGroupPages(section)) return [screen(section.id, section.title, [section.blocks, ...section.subsections.map((sub) => sub.blocks)])];
+    // A group that is only a link sits on the section screen, not on a page of its own.
+    const direct = section.subsections.filter((sub) => directLinkEntry(sub));
     return [
-      screen(section.id, section.title, [section.blocks]),
-      ...section.subsections.map((sub) => ({ ...screen(groupScreenId(section, sub), sub.title, [sub.blocks]), parent: section.id })),
+      { ...screen(section.id, section.title, [section.blocks, ...direct.map((sub) => sub.blocks)]), direct: direct.map((sub) => directLinkEntry(sub)) },
+      ...section.subsections
+        .filter((sub) => !directLinkEntry(sub))
+        .map((sub) => ({ ...screen(groupScreenId(section, sub), sub.title, [sub.blocks]), parent: section.id })),
     ];
   });
   const entries = screens.flatMap((s) => s.entries);
@@ -139,34 +143,27 @@ test('halal status, Jummah and warnings are visible without tapping anything', a
   expect(problems).toEqual([]);
 });
 
-test('each Halal Food group card shows its count, every status and its warnings', async ({ page }) => {
+test('Halal Food cards show only their names, and a link-only group opens its link', async ({ page }) => {
   const { screens } = load();
   const groups = screens.filter((s) => s.parent);
+  const parent = screens.find((s) => s.id === groups[0].parent);
   expect(groups.length, 'the food screen has group pages').toBeGreaterThan(1);
 
-  const problems = [];
+  await page.goto(`/#/${parent.id}`);
+  const view = screenView(page, parent.id);
   for (const group of groups) {
-    await page.goto('about:blank');
-    await page.goto(`/#/${group.parent}`);
-    const card = screenView(page, group.parent).locator(`a.group-link[href="#/${group.id}"]`);
-    if (!(await card.isVisible())) {
-      problems.push(`no visible card for ${group.title}`);
-      continue;
-    }
-    const text = clean(await card.textContent());
-    const n = group.entries.length;
-    if (!text.includes(`${n} ${n === 1 ? 'listing' : 'listings'}`)) problems.push(`${group.title}: count missing`);
-    for (const entry of group.entries) {
-      const status = entry.fields.find((f) => f.key === 'status')?.value;
-      const label = status ? STATUS_LABELS[status].label : entry.statusMissing ? STATUS_NOT_RECORDED.label : null;
-      if (label && !text.includes(label)) problems.push(`${group.title}: "${label}" (${entry.name}) missing from its card`);
-    }
-    for (const quote of group.quotes) {
-      const words = quote.runs.map((r) => r.text).join('').slice(0, 30);
-      if (!text.includes(clean(words))) problems.push(`${group.title}: warning "${words}" missing from its card`);
-    }
+    await expect(view.locator(`a.group-link[href="#/${group.id}"]`)).toHaveText(group.title);
   }
-  expect(problems).toEqual([]);
+  await expect(view.locator('.status, .alert, .chip')).toHaveCount(0);
+
+  expect(parent.direct.length, 'the IUHK list is a direct link').toBeGreaterThan(0);
+  for (const entry of parent.direct) {
+    const href = entry.fields.find((f) => f.key === 'link').value;
+    const card = view.locator(`a.group-link[data-entry-id="${entry.id}"]`);
+    await expect(card).toHaveAttribute('href', href);
+    await expect(card).toHaveAttribute('rel', 'noopener');
+    await expect(card.locator('h3')).toHaveText(entry.name);
+  }
 });
 
 test('Halal Food drills down like Prayer Facilities: group page, open a row, Back up each level', async ({ page }) => {

@@ -136,8 +136,9 @@ The logic lives in `src/guide.js`.
 - `>` blockquotes render as highlighted notes. Use them for warnings.
 - On long screens (the Halal Food screen, matched on the word "food" in its title) each
   `##` group is its own page, opened from a card on that screen, the same way Prayer
-  Facilities leads to Z302a. The card shows the listing count, every halal status with how
-  many rows carry it, and the group's warnings. Back goes one level up.
+  Facilities leads to Z302a. The card shows only the group's name, so the screen reads at a
+  glance; statuses and warnings show on the page's rows. A group that is only one note and
+  link (the IUHK list) opens that link straight from its card. Back goes one level up.
 
 ---
 
@@ -186,7 +187,7 @@ tests/
 - Minimum 48px tap targets. People tap these while walking.
 - No modals or carousels. Rows may open on tap, but the name, where it is, and the halal
   status word must be visible without tapping — on the row, once above a group where every
-  row shares it, or counted on the card that opens a group's page. Halal status, prayer times, access limits and warnings are never folded away.
+  row shares it. A card that only opens a group's page may show just the group's name. Halal status, prayer times, access limits and warnings are never folded away.
 - Short, plain words, as tags rather than sentences. Say a fact once, as briefly as it stays exact.
 - One theme, dark, for now: the light palette was removed on 2026-09-16 because the
   background photograph only reads on a dark ground. Bringing light mode back means a

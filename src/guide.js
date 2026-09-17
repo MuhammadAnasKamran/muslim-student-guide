@@ -7,7 +7,7 @@ export const STATUS_LABELS = {
   certified: { label: 'Halal certified', meaning: 'Holds halal certification.' },
   'certified-section': { label: 'Certified section only', meaning: 'Only part of the shop or menu is certified.' },
   'check-packaging': { label: 'Check packaging', meaning: 'Some products are certified. Look for the halal logo.' },
-  unverified: { label: 'Unverified', meaning: 'Community-known. Not checked by MUSA.' },
+  unverified: { label: 'Community-known', meaning: 'Community-known. Not endorsed or checked by MUSA.' },
 };
 
 // Shown on food listings that have no status in content.md (see FOOD_KEYS in
@@ -88,16 +88,12 @@ export function parentScreen(screenId) {
   return screenId?.includes('/') ? screenId.slice(0, screenId.indexOf('/')) : null;
 }
 
-// What a group's card shows about the rows on its page: how many there are, and how
-// many carry each halal status, so every status is readable before opening it.
-export function groupSummary(entries) {
-  const counts = new Map();
-  for (const entry of entries) {
-    const status = isInfoCard(entry) ? null : statusOf(entry);
-    if (status) counts.set(status.key, { ...status, count: (counts.get(status.key)?.count ?? 0) + 1 });
-  }
-  const order = [...Object.keys(STATUS_LABELS), 'none'];
-  return { total: entries.length, statuses: order.filter((key) => counts.has(key)).map((key) => counts.get(key)) };
+// A group made of one note-and-link card needs no page: its card on the section
+// screen opens the link itself, like the IUHK list.
+export function directLinkEntry(subsection) {
+  const entries = subsection.blocks.filter((b) => b.type === 'entry');
+  const prose = subsection.blocks.some((b) => b.type === 'prose');
+  return entries.length === 1 && !prose && isInfoCard(entries[0]) && entries[0].fields.some((f) => f.key === 'link') ? entries[0] : null;
 }
 
 export function isInfoCard(entry) {

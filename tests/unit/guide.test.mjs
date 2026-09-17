@@ -6,7 +6,7 @@ import {
   entryContexts,
   groupScreenId,
   hasGroupPages,
-  groupSummary,
+  directLinkEntry,
   isInfoCard,
   linkText,
   menuItems,
@@ -50,7 +50,7 @@ test('facts identical on every row are shown once, highlights never are', () => 
 
 test('a status shown above its group is left off the rows', () => {
   const k = entry('K', { status: 'unverified', price: 'HK$40' });
-  assert.equal(rowParts(k).status.label, 'Unverified');
+  assert.equal(rowParts(k).status.label, 'Community-known');
   assert.equal(rowParts(k, [{ key: 'status', value: 'unverified' }]).status, null);
 });
 
@@ -114,20 +114,12 @@ test('a warning is shown on the row and never shown once for the group', () => {
   assert.equal(sharedFacts([canteen, twin]).some((f) => f.key === 'warning'), false);
 });
 
-test('a closed block counts every halal status inside it', () => {
-  const summary = groupSummary([
-    entry('A', { status: 'certified' }),
-    entry('B', { status: 'certified-section' }),
-    entry('C', { status: 'certified' }),
-    entry('D', { walk: '5 min' }, { statusMissing: true }),
-    entry('Tip', { note: 'Check the pack' }),
-  ]);
-  assert.equal(summary.total, 5);
-  assert.deepEqual(summary.statuses.map((s) => [s.label, s.count]), [
-    ['Halal certified', 2],
-    ['Certified section only', 1],
-    ['Status not recorded', 1],
-  ]);
+test('a group that is only a link opens it from its card', () => {
+  const card = entry('List', { note: 'Check its date first.', link: 'https://a.example/list.pdf' });
+  assert.equal(directLinkEntry({ blocks: [card] }), card);
+  assert.equal(directLinkEntry({ blocks: [card, entry('Shop', { where: 'VA' })] }), null);
+  assert.equal(directLinkEntry({ blocks: [{ type: 'prose', kind: 'blockquote', runs: [] }, card] }), null, 'a warning needs a page to show on');
+  assert.equal(directLinkEntry({ blocks: [entry('Tip', { note: 'Check the pack' })] }), null);
 });
 
 test('only the food screen gives each group its own page', () => {
@@ -178,7 +170,7 @@ test('page addresses round-trip', () => {
 test('search covers facts that are shown once above a group', () => {
   const text = searchText({ entry: entry('K1', { status: 'unverified', price: 'About HK$40 a meal' }), section: { title: 'Halal Food' }, subsection: null });
   assert.match(text, /hk\$40/);
-  assert.match(text, /unverified/);
+  assert.match(text, /community-known/);
 });
 
 test('every published entry in the real content.md can be rendered', () => {

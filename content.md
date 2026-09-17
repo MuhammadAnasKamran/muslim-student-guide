@@ -160,9 +160,9 @@ Hours change often, so they are not listed.
 - tags: Frozen halal meals
 - warning: The Homantin canteen itself has no halal food.
 
-## WhatsApp Groups
+## Halal Home Kitchens
 
-> **Not certified.** Community-known home kitchens. Not checked by MUSA. Use your own judgement.
+> Community-known halal kitchens, but not endorsed by MUSA.
 
 ### Halal Food Delivery Hong Kong
 - status: unverified
@@ -187,7 +187,7 @@ Hours change often, so they are not listed.
 
 ## More in Hong Kong
 
-### IUHK Halal Food List
+### Hong Kong Halal Food List (IUHK)
 - note: Full Hong Kong halal list by IUHK. Check its date first.
 - link: https://www.iuhk.org/images/Others/Halah-Food/Halal-List_en.pdf
 
