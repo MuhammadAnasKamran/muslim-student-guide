@@ -260,6 +260,23 @@ test('WhatsApp group links carry the WhatsApp glyph, and only they do', async ({
   expect(await response.text()).not.toMatch(/<script|href=/i);
 });
 
+test('washroom types line up in the same column on every floor, and fit on a phone', async ({ page }) => {
+  await page.goto('/#/muslim-friendly-washrooms');
+  const columns = await page.locator('[data-screen="muslim-friendly-washrooms"] .washroom').evaluateAll((items) => {
+    const lefts = {};
+    const overflow = [];
+    for (const item of items) {
+      const type = [...item.classList].find((c) => c.startsWith('washroom-')).slice('washroom-'.length);
+      (lefts[type] ??= new Set()).add(Math.round(item.getBoundingClientRect().left));
+      const card = item.closest('.row').getBoundingClientRect();
+      if (item.getBoundingClientRect().right > card.right) overflow.push(item.textContent);
+    }
+    return { lefts: Object.fromEntries(Object.entries(lefts).map(([k, v]) => [k, v.size])), overflow };
+  });
+  expect(columns.lefts).toEqual({ male: 1, female: 1, accessible: 1 });
+  expect(columns.overflow).toEqual([]);
+});
+
 test('a row name lines up with its arrow, and the background stays put while scrolling', async ({ page }) => {
   const { screens } = load();
   const kitchens = screens.find((s) => s.entries.some((e) => e.fields.some((f) => f.key === 'link')) && s.parent);

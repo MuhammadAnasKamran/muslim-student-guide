@@ -32,6 +32,10 @@
   --status-yellow: #F5CF5B;
   --status-red: #FF9A8C;
   --status-grey: #C9D2CE;
+  /* Washroom types, each its own colour, always with its word. */
+  --wash-male: #8FBCFF;
+  --wash-female: #F5A8CC;
+  --wash-accessible: #7FD6C4;
   --glass-fill: rgb(230 238 234 / 0.09);
   --glass-border: rgb(255 255 255 / 0.14);
   --glass-sheen: rgb(255 255 255 / 0.38);
@@ -602,24 +606,41 @@ main {
   font-weight: 800;
 }
 
+/* Fixed columns, so Male, Female and Accessible line up down every floor. */
 .washroom-types {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
+  display: grid;
+  grid-template-columns: 4.25rem 5.25rem minmax(0, 1fr);
+  gap: 0.5rem;
 }
 
 .washroom {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  color: var(--ink);
-  font-size: 0.9375rem;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.washroom-male {
+  grid-column: 1;
+  color: var(--wash-male);
+}
+
+.washroom-female {
+  grid-column: 2;
+  color: var(--wash-female);
+}
+
+.washroom-accessible {
+  grid-column: 3;
+  color: var(--wash-accessible);
 }
 
 .washroom-icon {
   flex: none;
-  width: 1.375rem;
-  height: 1.375rem;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .prayers {

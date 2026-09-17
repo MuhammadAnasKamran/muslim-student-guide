@@ -62,6 +62,9 @@ test('every token pair meets WCAG AA', () => {
     ['status-yellow', 'surface', TEXT],
     ['status-red', 'surface', TEXT],
     ['status-grey', 'surface', TEXT],
+    ['wash-male', 'surface', TEXT],
+    ['wash-female', 'surface', TEXT],
+    ['wash-accessible', 'surface', TEXT],
     ['control-border', 'surface', NON_TEXT],
     ['accent', 'accent-soft', TEXT], // the Back button's word
     ['focus', 'bg', NON_TEXT],
@@ -101,6 +104,9 @@ test('text stays readable over the background photograph', () => {
       ['section-only status on a pane', palette['status-yellow'], pane],
       ['check-packaging status on a pane', palette['status-red'], pane],
       ['community-known status on a pane', palette['status-grey'], pane],
+      ['male washroom on a pane', palette['wash-male'], pane],
+      ['female washroom on a pane', palette['wash-female'], pane],
+      ['accessible washroom on a pane', palette['wash-accessible'], pane],
       ['status above a group, on the page', palette['status-grey'], ground],
     ]) {
       const ratio = contrast(channels(colour), backdrop);
