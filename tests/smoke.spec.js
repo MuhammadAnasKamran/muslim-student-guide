@@ -249,6 +249,28 @@ test('WhatsApp group links carry the WhatsApp glyph, and only they do', async ({
   expect(await response.text()).not.toMatch(/<script|href=/i);
 });
 
+test('a row name lines up with its arrow, and the background stays put while scrolling', async ({ page }) => {
+  const { screens } = load();
+  const kitchens = screens.find((s) => s.entries.some((e) => e.fields.some((f) => f.key === 'link')) && s.parent);
+  await page.goto(`/#/${kitchens.id}`);
+  const offsets = await screenView(page, kitchens.id).locator('details.row > .row-head').evaluateAll((heads) =>
+    heads
+      .filter((head) => head.children.length === 1)
+      .map((head) => {
+        const box = head.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(head.querySelector('h3'));
+        const text = range.getBoundingClientRect();
+        return Math.abs(text.top + text.height / 2 - (box.top + box.height / 2));
+      }),
+  );
+  for (const offset of offsets) expect(offset, 'name text is centred on the row, like the arrow').toBeLessThanOrEqual(1.5);
+
+  const before = await page.evaluate(() => getComputedStyle(document.body, '::before').position);
+  expect(before).toBe('fixed');
+  expect(await page.evaluate(() => getComputedStyle(document.documentElement).overscrollBehaviorY)).toBe('none');
+});
+
 test('pressing a card keeps its rounded corners, and buttons match the card shape', async ({ page }) => {
   await page.goto('/#/prayer-facilities/z302a');
   const view = screenView(page, 'prayer-facilities');

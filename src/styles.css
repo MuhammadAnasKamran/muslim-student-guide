@@ -56,6 +56,9 @@
 }
 
 html {
+  /* No rubber-band bounce at the top or bottom: on phones the bounce drags the
+     fixed background photo along with the page. */
+  overscroll-behavior: none;
   /* Our own press states follow each shape; the browser's flash is always a rectangle. */
   -webkit-tap-highlight-color: transparent;
   font-size: 100%;
@@ -452,6 +455,8 @@ main {
 .row-head {
   position: relative;
   display: grid;
+  /* Short rows (a name only) centre on the arrow instead of sitting at the top. */
+  align-content: center;
   gap: 0.25rem;
   min-height: 56px;
   padding: 0.75rem 2.75rem 0.75rem 0.875rem;

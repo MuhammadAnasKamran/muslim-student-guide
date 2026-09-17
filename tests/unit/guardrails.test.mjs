@@ -60,4 +60,6 @@ test('the background photo is sized to the large viewport, so it does not slide 
   assert.match(rule, /position:\s*fixed/);
   assert.match(rule, /height:\s*100lvh/, 'inset: 0 resizes as the toolbar hides; 100lvh does not');
   assert.doesNotMatch(rule, /inset:\s*0/);
+  const html = css.slice(css.indexOf('html {'), css.indexOf('}', css.indexOf('html {')));
+  assert.match(html, /overscroll-behavior:\s*none/, 'the bounce at the page ends drags the background');
 });
