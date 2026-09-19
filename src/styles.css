@@ -700,6 +700,22 @@ main {
   white-space: nowrap;
 }
 
+/* On a narrow phone three columns do not fit, so Accessible takes its own line and
+   Male and Female still line up. */
+@media (max-width: 379px) {
+  .washroom-types {
+    grid-template-columns: 4rem minmax(0, 1fr);
+  }
+
+  .washroom-accessible {
+    grid-column: 1 / -1;
+  }
+
+  .washroom {
+    font-size: 0.8125rem;
+  }
+}
+
 .washroom-male {
   grid-column: 1;
   color: var(--wash-male);

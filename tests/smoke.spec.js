@@ -294,6 +294,22 @@ test('halal status dots and labels line up in one column in every group', async 
   expect(problems).toEqual([]);
 });
 
+test('no screen scrolls sideways, down to a 320px phone', async ({ page }) => {
+  const { screens } = load();
+  await page.setViewportSize({ width: 320, height: 800 });
+  const wide = [];
+  for (const { id, title } of screens) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${id}`);
+    await expect(screenView(page, id)).toBeVisible();
+    await screenView(page, id).locator('details').evaluateAll((all) => all.forEach((d) => (d.open = true)));
+    await page.waitForTimeout(100);
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    if (width > 320) wide.push(`${title}: ${width}px`);
+  }
+  expect(wide).toEqual([]);
+});
+
 test('washroom types line up in the same column on every floor, and fit on a phone', async ({ page }) => {
   await page.goto('/#/muslim-friendly-washrooms');
   const columns = await page.locator('[data-screen="muslim-friendly-washrooms"] .washroom').evaluateAll((items) => {
@@ -426,7 +442,7 @@ test('every link on the page comes from content.json, and every content link is 
   expect(external.filter((a) => a.rel !== 'noopener').map((a) => a.href)).toEqual([]);
 });
 
-test('no tap target is smaller than 44px on any screen', async ({ page }) => {
+test('no tap target is smaller than 48px on any screen', async ({ page }) => {
   const { screens } = load();
   const measure = () =>
     page.$$eval('a[href], button, input, summary', (els) =>
@@ -436,7 +452,7 @@ test('no tap target is smaller than 44px on any screen', async ({ page }) => {
           const box = el.getBoundingClientRect();
           return { what: el.id || el.textContent.trim().slice(0, 40), width: Math.round(box.width), height: Math.round(box.height) };
         })
-        .filter((box) => box.width < 44 || box.height < 44),
+        .filter((box) => box.width < 48 || box.height < 48),
     );
 
   await openHome(page);
