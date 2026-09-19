@@ -43,7 +43,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - subtitle: Prayer, halal food and essentials for Muslim students at PolyU
 - org: MUSA — PolyU Muslim Association
 - version: 1.0
-- updated: 2026-09-15
+- updated: 2026-09-20
 - site: TODO: live URL once hosting is decided
 - contact: TODO: MUSA email
 - instagram: TODO: MUSA Instagram handle

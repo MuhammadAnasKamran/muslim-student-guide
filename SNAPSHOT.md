@@ -1,6 +1,6 @@
 # The Muslim Guide to PolyU — snapshot
 
-Everything the guide showed on 2026-09-20, at commit `c6bff51`. Generated from `content.md` by `npm run snapshot`: edit the guide there, not here.
+Everything the guide showed on 2026-09-20, at commit `d08dcc6`. Generated from `content.md` by `npm run snapshot`: edit the guide there, not here.
 
 MUSA — PolyU Muslim Association · version 1.0
 
