@@ -172,6 +172,7 @@ The logic lives in `src/guide.js`.
 ```
 content.md              the only file most people touch
 CLAUDE.md               this file
+SNAPSHOT.md             generated record of everything the guide shows, with its pictures
 scripts/
   parse.mjs             content.md → content.json
   validate.mjs          schema, status vocabulary, TODO report
@@ -179,6 +180,7 @@ scripts/
   check-links.mjs       every URL still resolves
   add-photo.mjs         copy a photo into src/photos/ with its metadata stripped
   make-map-previews.mjs   save OpenStreetMap preview tiles for every map link
+  snapshot.mjs          write SNAPSHOT.md from content.md
   dev.mjs               local server
   measure-background.mjs  brightness of the background photo, for the contrast test
 src/
@@ -206,6 +208,7 @@ tests/
 | `npm test` | Playwright suite |
 | `npm run test:unit` | Parser, validator, rendering logic, contrast and guardrails |
 | `npm run links` | Check every link in `content.md` |
+| `npm run snapshot` | Rewrite `SNAPSHOT.md`, the dated record of the whole guide |
 
 ---
 
