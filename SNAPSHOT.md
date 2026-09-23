@@ -1,6 +1,6 @@
 # The Muslim Guide to PolyU — snapshot
 
-Everything the guide showed on 2026-09-20, at commit `d08dcc6`. Generated from `content.md` by `npm run snapshot`: edit the guide there, not here.
+Everything the guide showed on 2026-09-23, at commit `5f286ec`. Generated from `content.md` by `npm run snapshot`: edit the guide there, not here.
 
 MUSA — PolyU Muslim Association · version 1.0
 
@@ -24,7 +24,7 @@ Access: Student card entry
 
 Layout: Men's & women's areas
 
-![Z302a](src/photos/z302a.jpg)
+![Z302a](src/photos/photo-z302a.jpg)
 
 [Live prayer times](https://mosque-prayer-display-screen-cyan.vercel.app)
 
@@ -36,7 +36,7 @@ Access: Student card entry
 
 Layout: Men's & women's areas
 
-![PQ502a](src/photos/pq502a.jpg)
+![PQ502a](src/photos/photo-pq502a.jpg)
 
 ### Hall Prayer Rooms
 
@@ -114,7 +114,7 @@ G/F, VA Student Canteen
 
 **Warning: Only these 3 meals are halal. Other dishes are not.**
 
-![The Forest — VA Student Canteen](src/photos/curry-menu.jpg)
+![The Forest — VA Student Canteen](src/photos/photo-curry-menu.jpg)
 
 [Visit the website](https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/va-student-canteen/)
 
@@ -122,7 +122,7 @@ G/F, VA Student Canteen
 
 VA210
 
-![Campus vending machine](src/photos/campus-vending-machine.jpg)
+![Campus vending machine](src/photos/photo-campus-vending-machine.jpg)
 
 #### Pacific Coffee — Check packaging
 
@@ -144,7 +144,7 @@ Hung Hom Halls
 
 **Warning: Only these 3 meals are halal. Other dishes are not.**
 
-![Hung Hom Halls Canteen](src/photos/curry-menu.jpg)
+![Hung Hom Halls Canteen](src/photos/photo-curry-menu.jpg)
 
 [Visit the website](https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/)
 
@@ -222,7 +222,7 @@ Homantin Halls, G/F canteen · Frozen halal meals
 
 Only these 6 Garden sandwich breads are halal certified. Giant Sandwich Bread is not. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
 
-![Halal bread](src/photos/garden-sandwich-bread.jpg)
+![Halal bread](src/photos/photo-garden-sandwich-bread.jpg)
 
 [Visit the website](https://www.garden.com.hk/en/product/hong-kong/retail/bread/sandwich-bread/)
 

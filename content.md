@@ -60,7 +60,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - arrangement: Men's & women's areas
 - prayers: Dhuhr · Asr · Maghrib · Isha
 - jummah: yes
-- photo: z302a.jpg
+- photo: photo-z302a.jpg
 - link: https://mosque-prayer-display-screen-cyan.vercel.app
 - link-label: Live prayer times
 
@@ -69,7 +69,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - arrangement: Men's & women's areas
 - prayers: Dhuhr · Asr · Maghrib · Isha
 - jummah: no
-- photo: pq502a.jpg
+- photo: photo-pq502a.jpg
 
 ## Hall Prayer Rooms
 
@@ -122,13 +122,13 @@ It will tell you about unknown keys, bad status values, and dead links.
 - where: G/F, VA Student Canteen
 - status: certified-section
 - warning: Only these 3 meals are halal. Other dishes are not.
-- photo: curry-menu.jpg
+- photo: photo-curry-menu.jpg
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/va-student-canteen/
 
 ### Campus vending machine
 - where: VA210
 - status: certified
-- photo: campus-vending-machine.jpg
+- photo: photo-campus-vending-machine.jpg
 - TODO: official name of this vending machine
 
 ### Pacific Coffee
@@ -149,7 +149,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 - where: Hung Hom Halls
 - status: certified-section
 - warning: Only these 3 meals are halal. Other dishes are not.
-- photo: curry-menu.jpg
+- photo: photo-curry-menu.jpg
 - link: https://www.polyu.edu.hk/cfso/campus-environment-and-facilities/catering-facilities/catering-outlets/hhsh-canteen/
 
 ### Homantin Halls vending machine
@@ -221,7 +221,7 @@ It will tell you about unknown keys, bad status values, and dead links.
 
 ### Halal bread
 - note: Only these 6 Garden sandwich breads are halal certified. Giant Sandwich Bread is not. Sold at 7-Eleven, Circle K, ParknShop, Wellcome.
-- photo: garden-sandwich-bread.jpg
+- photo: photo-garden-sandwich-bread.jpg
 - link: https://www.garden.com.hk/en/product/hong-kong/retail/bread/sandwich-bread/
 
 ## Grocery Delivery
