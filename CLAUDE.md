@@ -173,6 +173,7 @@ The logic lives in `src/guide.js`.
 content.md              the only file most people touch
 CLAUDE.md               this file
 SNAPSHOT.md             generated record of everything the guide shows, with its pictures
+The-Muslim-Guide-to-PolyU.pdf  printable booklet of the published guide, made by npm run pdf
 scripts/
   parse.mjs             content.md → content.json
   validate.mjs          schema, status vocabulary, TODO report
@@ -181,12 +182,13 @@ scripts/
   add-photo.mjs         copy a photo into src/photos/ with its metadata stripped
   make-map-previews.mjs   save OpenStreetMap preview tiles for every map link
   snapshot.mjs          write SNAPSHOT.md from content.md
+  make-pdf.mjs          print the published guide to a PDF booklet
   dev.mjs               local server
   measure-background.mjs  brightness of the background photo, for the contrast test
 src/
   index.html
   background.jpg        background photograph
-  photos/               entry photos, named in content.md
+  photos/               entry photos and logos, named photo-*.jpg and logo-*.jpg in content.md
   icons/                brand glyphs for link buttons (WhatsApp)
   maps/                 map preview tiles and previews.json
   app.js                home menu, screens, rows, search, Back button
@@ -209,6 +211,7 @@ tests/
 | `npm run test:unit` | Parser, validator, rendering logic, contrast and guardrails |
 | `npm run links` | Check every link in `content.md` |
 | `npm run snapshot` | Rewrite `SNAPSHOT.md`, the dated record of the whole guide |
+| `npm run pdf` | Rebuild `The-Muslim-Guide-to-PolyU.pdf`, the printable booklet |
 
 ---
 
