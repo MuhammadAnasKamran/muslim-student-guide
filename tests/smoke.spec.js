@@ -294,6 +294,24 @@ test('halal status dots and labels line up in one column in every group', async 
   expect(problems).toEqual([]);
 });
 
+test('no screen scrolls sideways with the text set twice as large', async ({ page }) => {
+  const { screens } = load();
+  const wide = [];
+  for (const { id, title } of screens) {
+    await page.goto('about:blank');
+    await page.goto(`/#/${id}`);
+    await expect(screenView(page, id)).toBeVisible();
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '200%';
+      document.querySelectorAll('.view:not([hidden]) details').forEach((d) => (d.open = true));
+    });
+    await page.waitForTimeout(150);
+    const { scroll, client } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+    if (scroll > client + 1) wide.push(`${title}: ${scroll}px in ${client}px`);
+  }
+  expect(wide, 'someone reading at 200% text would have to scroll sideways').toEqual([]);
+});
+
 test('no screen scrolls sideways, down to a 320px phone', async ({ page }) => {
   const { screens } = load();
   await page.setViewportSize({ width: 320, height: 800 });

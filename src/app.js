@@ -497,7 +497,7 @@ function renderWashrooms(floors) {
         'span',
         { class: 'washroom-floor', role: 'listitem' },
         h('span', { class: 'floor-label' }, h('span', { class: 'visually-hidden' }, 'Floor '), floor),
-        h('span', { class: 'washroom-types' }, ...types.map((type) => h('span', { class: `washroom washroom-${type}` }, washroomIcon(type), WASHROOM_TYPES[type]))),
+        h('span', { class: 'washroom-types' }, ...types.map((type) => h('span', { class: `washroom washroom-${type}` }, washroomIcon(type), h('span', { class: 'washroom-word' }, WASHROOM_TYPES[type])))),
       ),
     ),
   );

@@ -103,6 +103,37 @@ input {
   padding-inline: var(--gutter);
 }
 
+/* Every stack is one column that may shrink, and long words may break, so a phone with
+   large text set still never scrolls sideways. */
+.view,
+.menu,
+.search,
+.group,
+.group-links,
+.row-body,
+.washrooms,
+.prayers,
+.facts,
+.branch {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.search-row,
+.search-input,
+.clear-button,
+.appbar-title,
+.menu-title,
+.group-title,
+.row-name,
+.branch-name,
+.washroom,
+.info-title,
+.chip,
+.status {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -687,7 +718,7 @@ main {
 /* Fixed columns, so Male, Female and Accessible line up down every floor. */
 .washroom-types {
   display: grid;
-  grid-template-columns: 4.25rem 5.25rem minmax(0, 1fr);
+  grid-template-columns: minmax(0, 4.25rem) minmax(0, 5.25rem) minmax(0, 1fr);
   gap: 0.5rem;
 }
 
@@ -697,14 +728,13 @@ main {
   gap: 0.25rem;
   font-size: 0.875rem;
   font-weight: 700;
-  white-space: nowrap;
 }
 
 /* On a narrow phone three columns do not fit, so Accessible takes its own line and
    Male and Female still line up. */
 @media (max-width: 379px) {
   .washroom-types {
-    grid-template-columns: 4rem minmax(0, 1fr);
+    grid-template-columns: minmax(0, 4rem) minmax(0, 1fr);
   }
 
   .washroom-accessible {
@@ -729,6 +759,12 @@ main {
 .washroom-accessible {
   grid-column: 3;
   color: var(--wash-accessible);
+}
+
+/* Its own element, so the word can shrink and break when the text is set large. */
+.washroom-word {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .washroom-icon {
