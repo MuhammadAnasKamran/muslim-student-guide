@@ -36,7 +36,9 @@ jobs:
         run: |
           existing=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body-file link-report.md
+            # Rewrite the issue rather than adding a comment, so a link that stays broken
+            # for months leaves one current report instead of a pile of weekly comments.
+            gh issue edit "$existing" --body-file link-report.md
           else
             gh issue create --title "$TITLE" --body-file link-report.md
           fi

@@ -21,6 +21,17 @@ test('rule 3: no runtime dependencies, dev dependencies pinned exactly', () => {
   }
 });
 
+test('the page may only load what this site serves', () => {
+  const html = read('src/index.html');
+  const policy = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
+  assert.ok(policy, 'index.html has no Content-Security-Policy');
+  for (const directive of ["default-src 'self'", "script-src 'self'", "connect-src 'self'", "object-src 'none'", "base-uri 'none'", "form-action 'none'"]) {
+    assert.ok(policy.includes(directive), `the policy is missing ${directive}`);
+  }
+  assert.doesNotMatch(policy, /script-src[^;]*unsafe-(inline|eval)/, 'inline script would defeat the policy');
+  assert.doesNotMatch(policy, /https?:/, 'the policy must not allow another site');
+});
+
 test('rule 4: no CDN or external resources in the site', () => {
   // The SVG namespace is an identifier createElementNS needs, never a request.
   const SVG_NS = 'http://www.w3.org/2000/svg';

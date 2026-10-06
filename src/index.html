@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
+  <!-- The guide serves everything itself. This stops the page loading or running anything
+       from anywhere else, whatever ends up in content.md. 'unsafe-inline' covers the style
+       attribute on map tiles only: no inline script is allowed. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>MUSA Muslim Guide</title>
   <link rel="icon" href="data:,">
   <meta name="theme-color" content="#0F2A24">
