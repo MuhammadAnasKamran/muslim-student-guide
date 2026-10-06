@@ -51,6 +51,19 @@ test('a map link without a saved preview is a warning, not an error', () => {
   assert.deepEqual(validate(doc, { previews: { 'https://maps.app.goo.gl/abc': { lat: 22.3, lng: 114.18 } } }).warnings, []);
 });
 
+test('a link that is not https, and a photo escaping src/photos, are refused', () => {
+  const entry = (field) => check(`# 1. FOOD\n### Place\n- where: Z\n${field}\n`).errors;
+  for (const link of ['javascript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'http://example.com', 'file:///etc/passwd']) {
+    const errors = entry(`- link: ${link}`);
+    assert.equal(errors.length, 1, link);
+    assert.match(errors[0].message, /https:\/\//, link);
+  }
+  for (const photo of ['../../etc/passwd', '..%2Fsecret.jpg', '/absolute.jpg', 'sub/dir.jpg']) {
+    const errors = check(`# 1. FOOD\n### Place\n- where: Z\n- photo: ${photo}\n`).errors;
+    assert.ok(errors.some((e) => /file name like/.test(e.message)), photo);
+  }
+});
+
 test('a value containing a colon is valid', () => {
   const { errors } = check('# 1. FOOD\n### Place\n- where: Z Core\n- status: certified\n- note: Opens 10:00: usually\n');
   assert.deepEqual(errors, []);

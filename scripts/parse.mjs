@@ -28,8 +28,14 @@ const TODO = /^TODO:\s*(.*)$/;
 const NUMBERED_TITLE = /^(\d+(?:\.\d+)*)\.?\s+(.+)$/;
 const PUBLISHED_PROSE = new Set(['paragraph', 'blockquote']);
 
+// A field line: "- key: value". Tabs and a little indentation are allowed, because a
+// committee member's editor may well produce them.
+const FIELD_LINE = /^[ \t]*-[ \t]+(?=\S)/;
+
 export function parseContent(source) {
-  const lines = source.split(/\r?\n/);
+  // Editors on Windows add a byte order mark; it would otherwise look like text before
+  // the first section and fail the whole file.
+  const lines = source.replace(/^\uFEFF/, '').split(/\r?\n/);
   const problems = [];
   const todos = [];
   const sections = [];
@@ -202,8 +208,8 @@ export function parseContent(source) {
     }
 
     if (entry) {
-      if (raw.startsWith('- ')) {
-        const field = parseField(raw.slice(2).trim(), line);
+      if (FIELD_LINE.test(raw)) {
+        const field = parseField(raw.replace(FIELD_LINE, ''), line);
         if (field) entry.fields.push(field);
         lastWasField = true;
         continue;
@@ -215,9 +221,9 @@ export function parseContent(source) {
       closeEntry();
     }
 
-    if (subsection?.isMeta && raw.startsWith('- ')) {
+    if (subsection?.isMeta && FIELD_LINE.test(raw)) {
       flushProse();
-      const field = parseField(raw.slice(2).trim(), line);
+      const field = parseField(raw.replace(FIELD_LINE, ''), line);
       if (field) metaFields.push(field);
       continue;
     }

@@ -105,3 +105,25 @@ test('food entries with no status are flagged', () => {
   assert.equal(a.statusMissing, true);
   assert.equal(b.statusMissing, undefined);
 });
+
+// A committee member may edit content.md in any editor, on any machine. These are the
+// shapes that arrive in practice; none of them may lose a listing.
+test('a file saved by a Windows editor still parses: BOM, CRLF and tabs', () => {
+  const body = '# Guide\n## META\n- title: T\n# FOOD\n### Place\n- where: Z Core\n- status: certified\n';
+  for (const [what, source] of [
+    ['a byte order mark', `﻿${body}`],
+    ['CRLF line endings', body.replace(/\n/g, '\r\n')],
+    ['tabs after the bullet', body.replace(/- (?=where|status|title)/g, '-\t')],
+    ['an indented field', body.replace(/\n- where/g, '\n  - where')],
+  ]) {
+    const doc = parseContent(source);
+    assert.deepEqual(doc.problems, [], what);
+    const entry = doc.sections.at(-1).blocks.find((b) => b.type === 'entry');
+    assert.equal(entry?.name, 'Place', what);
+    assert.deepEqual(
+      entry.fields.map((f) => [f.key, f.value]),
+      [['where', 'Z Core'], ['status', 'certified']],
+      what,
+    );
+  }
+});
