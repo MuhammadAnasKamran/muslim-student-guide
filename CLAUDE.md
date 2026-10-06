@@ -187,6 +187,7 @@ scripts/
   measure-background.mjs  brightness of the background photo, for the contrast test
 src/
   index.html
+  404.html              shown for an address that is not part of the guide
   background.jpg        background photograph
   photos/               entry photos and logos, named photo-*.jpg and logo-*.jpg in content.md
   icons/                brand glyphs for link buttons (WhatsApp)
@@ -255,6 +256,22 @@ The dark palette in use:
 MUSA's brand green `#12695A` is the accent for light mode, which returns with it.
 
 ---
+
+## Picking this up again
+
+After a break, start here:
+
+```bash
+npm ci && npm run check && npm run test:unit && npm test && npm run links
+```
+
+`npm run check` lists the gaps the committee still owes (MUSA email, Instagram, WhatsApp,
+Discover Islam's street address and Jummah time, delivery areas, and so on). `npm run links`
+reports one long-standing failure: garden.com.hk serves an incomplete certificate chain, which
+is their server's problem, not ours — the weekly workflow keeps one open issue about it.
+
+After changing `content.md`, run `npm run snapshot` and `npm run pdf` so the record and the
+booklet match the site. If a map link changes, run `node scripts/make-map-previews.mjs`.
 
 ## Working style
 

@@ -305,9 +305,16 @@ test('no screen scrolls sideways with the text set twice as large', async ({ pag
       document.documentElement.style.fontSize = '200%';
       document.querySelectorAll('.view:not([hidden]) details').forEach((d) => (d.open = true));
     });
-    await page.waitForTimeout(150);
-    const { scroll, client } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
-    if (scroll > client + 1) wide.push(`${title}: ${scroll}px in ${client}px`);
+    // Let the larger text settle before measuring, rather than guessing at a delay.
+    const measure = () => page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+    let last = await measure();
+    for (let i = 0; i < 10; i++) {
+      await page.waitForTimeout(80);
+      const now = await measure();
+      if (now.scroll === last.scroll && now.client === last.client) break;
+      last = now;
+    }
+    if (last.scroll > last.client + 1) wide.push(`${title}: ${last.scroll}px in ${last.client}px`);
   }
   expect(wide, 'someone reading at 200% text would have to scroll sideways').toEqual([]);
 });
